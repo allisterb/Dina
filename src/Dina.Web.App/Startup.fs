@@ -11,9 +11,10 @@ let main args =
     let builder = WebApplication.CreateBuilder(args)
     
     // Add services to the container.
-    builder.Services.AddWebSharper()
+    builder.Services
+        .AddWebSharper()
         .AddAuthentication("WebSharper")
-        .AddCookie("WebSharper", fun options -> ())
+        .AddCookie("WebSharper", fun options -> ())              
     |> ignore
 
     let app = builder.Build()
@@ -26,12 +27,14 @@ let main args =
         |> ignore
 
     app.UseHttpsRedirection()
+
 #if DEBUG        
-        .UseWebSharperScriptRedirect(startVite = true)
+        //.UseWebSharperScriptRedirect(startVite = true)
 #endif
-        .UseAuthentication()
-        .UseStaticFiles()
+        //.UseAuthentication()
         .UseWebSharper(fun ws -> ws.Sitelet(Site.Main) |> ignore)
+        .UseStaticFiles()
+       
     |> ignore
 
     app.Run()

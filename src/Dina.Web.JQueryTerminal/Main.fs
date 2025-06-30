@@ -17,9 +17,10 @@
 // permissions and limitations under the License.
 //
 // $end{copyright}
-namespace WebSharper.JQueryTerminal
+namespace Dina.Web.JQueryTerminal
 
 open WebSharper
+open WebSharper.JavaScript
 open WebSharper.InterfaceGenerator
 
 module Definition =
@@ -155,14 +156,14 @@ module Definition =
 
     let Assembly =
         Assembly [
-            Namespace "SMApp.JQueryTerminal.Resources" [
-                Resource "Js" "https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/2.17.6/js/jquery.terminal.min.js"
+            Namespace "Dina.Web.JQueryTerminal.Resources" [
+                Resource "Js" "https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/2.44.1/js/jquery.terminal.min.js"
                 |> RequiresExternal [T<WebSharper.JQuery.Resources.JQuery>]
                 |> AssemblyWide
-                Resource "Css" "https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/2.17.6/css/jquery.terminal.min.css"
+                Resource "Css" "https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/2.44.1/css/jquery.terminal.min.css"
                 |> AssemblyWide
             ]
-            Namespace "SMApp.JQueryTerminal" [
+            Namespace "Dina.Web.JQueryTerminal" [
                 Terminal
                 Options
                 EchoOptions
