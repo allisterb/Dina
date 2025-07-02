@@ -1,12 +1,12 @@
 ﻿namespace Dina.Web.App
 
 open WebSharper
-open WebSharper.JQuery
+
 open WebSharper.UI
 open WebSharper.UI.Client
 open WebSharper.UI.Html
 
-
+open Dina.Web
 open Dina.Web.JQueryTerminal
 open Dina.Web.WebSpeech
 open Dina.Web.BotLibre
@@ -50,7 +50,7 @@ module CUI =
             } |> Async.Start
 
          member x.SayDoc (d:Doc) =
-            let i =  JQuery(".terminal-output").Get().[0].ChildNodes.Length
+            let i =  JQuery.JQuery(".terminal-output").Get().[0].ChildNodes.Length
             div [cls "terminal-command"; dindex (i + 1)] [d] |> Doc.RunAppend (termOutput())
 
          member x.SayAngry m =

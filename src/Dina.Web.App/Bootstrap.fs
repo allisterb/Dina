@@ -4,8 +4,8 @@ open WebSharper
 open WebSharper.UI
 open WebSharper.UI.Html
 open WebSharper.UI.Client
-open WebSharper.JQuery
 
+open Dina.Web
 module Resources =
     open WebSharper.Core.Resources
     

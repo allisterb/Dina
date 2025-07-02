@@ -158,7 +158,7 @@ module Definition =
         Assembly [
             Namespace "Dina.Web.JQueryTerminal.Resources" [
                 Resource "Js" "https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/2.44.1/js/jquery.terminal.min.js"
-                |> RequiresExternal [T<WebSharper.JQuery.Resources.JQuery>]
+                |> RequiresExternal [T<Dina.Web.JQuery.Resources.JQuery>]
                 |> AssemblyWide
                 Resource "Css" "https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/2.44.1/css/jquery.terminal.min.css"
                 |> AssemblyWide

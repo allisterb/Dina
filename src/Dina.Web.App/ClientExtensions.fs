@@ -8,8 +8,8 @@ open WebSharper.JavaScript
 open WebSharper.UI
 open WebSharper.UI.Client
 open WebSharper.UI.Html
-open WebSharper.JQuery
 
+open Dina.Web
 open Dina.Web.JQueryTerminal
 open Dina.Web.WebSpeech
 
@@ -22,7 +22,7 @@ module ClientExtensions =
         member x.EchoHtml' (text:string) = x.Pause(); x.Echo(text, rawOpt) ; x.Resume()
       
     let toArray (a : ArrayLike<'t>) =
-        JQuery.MakeArray a |> Array.map (fun a -> a :?> 't)
+        JQuery.JQuery.MakeArray a |> Array.map (fun a -> a :?> 't)
 
     let jserror = JQuery.JQuery.Error 
 
@@ -34,7 +34,7 @@ module ClientExtensions =
     
     let toLower (s:string) = s.ToLower()
 
-    let termOutput() = JQuery(".terminal-output").Get().[0]
+    let termOutput() = JQuery.JQuery.Of(".terminal-output").Get()[0]
 
     [<Direct("window.speechSynthesis")>]
     let speechSynthesis() = X<SpeechSynthesis>

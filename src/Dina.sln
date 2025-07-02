@@ -13,6 +13,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dina.Web.WebSpeech", "Dina.
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dina.Web.WebAudio", "Dina.Web.WebAudio\Dina.Web.WebAudio.fsproj", "{47419CE1-7F07-6696-CBDA-B1359B6B05FE}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dina.Web.JQuery", "Dina.Web.JQuery\Dina.Web.JQuery.fsproj", "{F7156190-2F35-1236-782C-124D833F63DF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{47419CE1-7F07-6696-CBDA-B1359B6B05FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{47419CE1-7F07-6696-CBDA-B1359B6B05FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{47419CE1-7F07-6696-CBDA-B1359B6B05FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F7156190-2F35-1236-782C-124D833F63DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7156190-2F35-1236-782C-124D833F63DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F7156190-2F35-1236-782C-124D833F63DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F7156190-2F35-1236-782C-124D833F63DF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

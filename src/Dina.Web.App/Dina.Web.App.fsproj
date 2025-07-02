@@ -22,14 +22,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="WebSharper" Version="6.1.13.566" />    
-    <PackageReference Include="WebSharper.FSharp" Version="6.1.13.566" />    
-    <PackageReference Include="WebSharper.JQuery" Version="6.1.2.566" />
-    <PackageReference Include="WebSharper.UI" Version="6.1.5.566" />
-    <PackageReference Include="WebSharper.AspNetCore" Version="6.1.13.566" />
+    <PackageReference Include="WebSharper" Version="9.1.3.570" />    
+    <PackageReference Include="WebSharper.FSharp" Version="9.1.3.570" />
+    <PackageReference Include="WebSharper.UI" Version="9.1.3.570" />
+    <PackageReference Include="WebSharper.AspNetCore" Version="9.1.3.570" />
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="Dina.Web.JQuery">
+      <HintPath>..\..\lib\Dina.Web.JQuery.dll</HintPath>
+    </Reference>
     <Reference Include="Dina.Web.JQueryTerminal">
       <HintPath>..\..\lib\Dina.Web.JQueryTerminal.dll</HintPath>
     </Reference>
@@ -44,7 +46,7 @@
     </Reference>
   </ItemGroup>
   
-  <Target Name="ESBuildBundle" AfterTargets="WebSharperCompile">
+  <Target Name="ESBuildBundle" AfterTargets="WebSharperCompile" Condition=" '$(Configuration)' == 'Release' ">
     <Exec Command="npm install" />
     <Exec Command="node ./esbuild.config.mjs" />
   </Target>
