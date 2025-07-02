@@ -4,7 +4,7 @@
   "outputDir": "wwwroot",
   "debug": {
     "outputDir": "build",
-    "preBundle": true
+    "preBundle": false
   },
   "release": {
     "outputDir": "build",

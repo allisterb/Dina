@@ -2,7 +2,7 @@ namespace Dina.Web.App
 
 open WebSharper
 open WebSharper.JavaScript
-open WebSharper.JQuery
+open Dina.Web.JQuery
 
 open WebSharper.Sitelets
 open WebSharper.UI
