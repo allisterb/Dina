@@ -1,9 +1,13 @@
 open System
+
 open Microsoft.AspNetCore.Builder
 open Microsoft.Extensions.Hosting
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.DependencyInjection
+
 open WebSharper.AspNetCore
+open Serilog
+
 open Dina.Web.App
 
 [<EntryPoint>]
@@ -12,13 +16,19 @@ let main args =
     
     // Add services to the container.
     builder.Services
+       .AddSerilog(fun config ->
+            config
+                .MinimumLevel.Debug()
+                .Enrich.FromLogContext()
+                .WriteTo.Console()
+            |> ignore)
         .AddWebSharper()
         .AddAuthentication("WebSharper")
         .AddCookie("WebSharper", fun options -> ())              
     |> ignore
 
     let app = builder.Build()
-
+    
     // Configure the HTTP request pipeline.
     if not (app.Environment.IsDevelopment()) then
         app.UseExceptionHandler("/Error")
@@ -33,8 +43,7 @@ let main args =
 #endif
         .UseAuthentication()
         .UseWebSharper(fun ws -> ws.Sitelet(Site.Main) |> ignore)
-        .UseStaticFiles()
-       
+        .UseStaticFiles()      
     |> ignore
 
     app.Run()
