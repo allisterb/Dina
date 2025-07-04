@@ -2,10 +2,6 @@
   "$schema": "https://websharper.com/wsconfig.schema.json",
   "project": "web",
   "outputDir": "wwwroot",
-  "debug": {
-    "outputDir": "build",
-    "preBundle": false
-  },
   "release": {
     "outputDir": "build",
     "preBundle": true

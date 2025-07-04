@@ -50,7 +50,7 @@ module CUI =
             } |> Async.Start
 
          member x.SayDoc (d:Doc) =
-            let i =  JQuery.JQuery(".terminal-output").Get().[0].ChildNodes.Length
+            let i =  JQuery.JQuery(".terminal-otput").Get().[0].ChildNodes.Length
             div [cls "terminal-command"; dindex (i + 1)] [d] |> Doc.RunAppend (termOutput())
 
          member x.SayAngry m =

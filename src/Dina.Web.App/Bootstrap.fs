@@ -10,13 +10,11 @@ module Resources =
     open WebSharper.Core.Resources
     
     type CSS() =
-        inherit BaseResource("https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css", "bootstrap.min.css")
-    type PopperJS() =
-        inherit BaseResource("https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd", "popper.min.js")
+        inherit BaseResource(@"https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css", "bootstrap.min.css")
     type JS() =
-        inherit BaseResource("https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js", "bootstrap.min.js")
+        inherit BaseResource("https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js", "bootstrap.bundle.min.js")
 
-[<Require(typeof<Resources.CSS>);Require(typeof<JQuery.Resources.JQuery>);Require(typeof<Resources.PopperJS>);Require(typeof<Resources.JS>)>]
+[<Require(typeof<Resources.CSS>);Require(typeof<JQuery.Resources.JQuery>);Require(typeof<Resources.JS>)>]
 [<JavaScript>]
 module Bs =
     

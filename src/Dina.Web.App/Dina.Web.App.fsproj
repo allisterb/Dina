@@ -5,7 +5,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="Style.css" />
     <Compile Include="Server.fs" />
     <Compile Include="ClientExtensions.fs" />
     <Compile Include="Bootstrap.fs" />

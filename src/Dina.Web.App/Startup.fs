@@ -29,9 +29,9 @@ let main args =
     app.UseHttpsRedirection()
 
 #if DEBUG        
-        //.UseWebSharperScriptRedirect(startVite = true)
+        //.UseWebSharperScriptRedirect(startVite = false)
 #endif
-        //.UseAuthentication()
+        .UseAuthentication()
         .UseWebSharper(fun ws -> ws.Sitelet(Site.Main) |> ignore)
         .UseStaticFiles()
        

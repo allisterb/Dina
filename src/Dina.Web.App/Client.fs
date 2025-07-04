@@ -6,11 +6,15 @@ open WebSharper.UI
 open WebSharper.UI.Templating
 open WebSharper.JavaScript
 
+open Dina.Web
 open Dina.Web.JQueryTerminal    
 open Dina.Web.BotLibre
 open Dina.Web.WebSpeech
 
 [<JavaScript>]
+
+[<Require(typeof<Resources.CSS>);Require(typeof<JQuery.Resources.JQuery>);Require(typeof<Resources.JS>)>]
+
 module Client =
     (* CUI state *)
     let mutable CUI = {
