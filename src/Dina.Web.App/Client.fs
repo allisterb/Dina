@@ -53,18 +53,15 @@ module Client =
 
     let Props = new Dictionary<string, obj>()
     let Output = new Stack<string>()
-
-    (* Speech *)
-    let synth = Window.SpeechSynthesis
-    
+ 
     let initSpeech() =
-        let voices = synth.GetVoices() |> toArray         
+        let voices = Window.SpeechSynthesis.GetVoices() |> toArray         
         if voices.Length > 0 then
-            let v = voices |> Array.find (fun v -> v.Default) in 
-            CUI <- { CUI with Voice = Some v }  
+            let voice = voices |> Array.tryFind(fun v -> JS.HasOwnProperty v "default" && v.Default) |> Option.defaultValue voices[0]
+            CUI <- { CUI with Voice = Some voice }  
             debug <| sprintf "Using browser speech synthesis voice %s." CUI.Voice.Value.Name
             CUI.Avatar.NativeVoice <- true
-            CUI.Avatar.NativeVoiceName <- v.Name
+            CUI.Avatar.NativeVoiceName <- voice.Name
         else  
             echo "No browser speech synthesis voice is available. Falling back to CMU TTS."
     
@@ -75,22 +72,17 @@ module Client =
         say' text
         
     let sayVoices() =
-        let voices = speechSynthesis().GetVoices() |> toArray    
+        let voices = Window.SpeechSynthesis.GetVoices() |> toArray    
         sprintf "There are currently %i voices installed on this computer or device." voices.Length |> say'
         voices |> Array.iteri (fun i v -> sprintf "Voice %i. Name: %s, Local: %A." i v.Name v.LocalService |> say')
 
-    //let sayRandom t phrases = say <| getRandomPhrase phrases t
-
-          
-        
     /// Terminal interpreter loop
     let mainterm (term:Terminal) (command:string)  =
         CUI <- { CUI with Term = term }
         do 
             //if CUI.Mic = None then initMic main'
-            if CUI.Voice = None then initSpeech ()
-            
-        do if ClientState = ClientNotInitialzed then ClientState <- ClientReady
+            if CUI.Voice = None then initSpeech()
+            if ClientState = ClientNotInitialzed then ClientState <- ClientReady
         match command with
         (* Quick commands *)
         | Text.Blank -> say' "Tell me what you want me to do or ask me a question."
@@ -125,7 +117,5 @@ module Client =
         )       
        
     let run() =        
-        //Html.div [Html.attr.id "main"; cls "container"] []
-
         Terminal("#term", ThisAction<Terminal, string>(fun term command -> mainterm term command), mainOpt) |> ignore
         Doc.Empty
