@@ -1,19 +1,15 @@
 ﻿namespace Dina;
+  
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.SemanticKernel;
+
+using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel.Connectors.OpenAI;
 
 using LLama;
 using LLama.Common;
 using LLama.Native;
 using LLamaSharp.SemanticKernel.ChatCompletion;
-using Microsoft.Extensions.AI;  
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel;
-
-using Microsoft.SemanticKernel.ChatCompletion;
-
-using System.Linq;
-using System.Runtime.InteropServices;
-
 
 public enum ModelRuntimeType
 {
@@ -23,11 +19,11 @@ public enum ModelRuntimeType
 
 public class Model : Runtime
 {
+    #region Constructors
     public static bool Initialize(ModelRuntimeType runtimeType, string llamacppPath, string modelPath)
     {
         if (runtimeType == ModelRuntimeType.LlamaCpp)
-        {
-            Info("Using llama.cpp embedded library at {0} with model {1}", llamacppPath, modelPath);    
+        { 
             NativeLibraryConfig.LLama
                 .WithAutoFallback(true)
                 .WithCuda(false)
@@ -42,47 +38,65 @@ public class Model : Runtime
                 GpuLayerCount = 99 // How many layers to offload to GPU. Please adjust it according to your GPU memory.
             };
             
-
             LLamaWeights model = LLamaWeights.LoadFromFile(parameters);
             var ex = new StatelessExecutor(model, parameters, Runtime.logger);
             chat = new LLamaSharpChatCompletion(ex);
-
-            var builder = Kernel.CreateBuilder();
-            builder.Services.AddSingleton(Runtime.logger);
-            builder.Services.AddSingleton<IChatCompletionService>(chat);
-
-            kernel = builder.Build();
-            IsInitialized = true;
+            Info("Using llama.cpp embedded library at {0} with model {1}", llamacppPath, modelPath);
         }
         else
         {
+#pragma warning disable SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+            chat = new OpenAIChatCompletionService(modelPath, new Uri(llamacppPath));
+#pragma warning restore SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+            
             Info("Using OpenAI compatible API at {0} with model {1}", llamacppPath, modelPath);
-            var builder = Kernel.CreateBuilder();
-            builder.Services.AddSingleton(Runtime.logger);
-            builder.AddOpenAIChatCompletion(modelPath, new Uri(llamacppPath), null);
- 
-            kernel = builder.Build();
-            IsInitialized = true;
         }
         
-        return IsInitialized;
+        var builder = Kernel.CreateBuilder();
+        builder.Services.AddSingleton(Runtime.logger);
+        builder.Services.AddSingleton<IChatCompletionService>(chat);
+        kernel = builder.Build();
+        isInitialized = true;
+        return isInitialized;
     }
+    #endregion
 
-    public static bool IsInitialized = false;
-
-    public static async IAsyncEnumerable<string> Prompt(string prompt) 
+    #region Methods
+    private static void ThrowIfNotInitialized()
     {
-        await foreach (var r in kernel.InvokePromptStreamingAsync(prompt))
+        if (!isInitialized)
         {
-            yield return r.ToString();
+            throw new InvalidOperationException("ModelRuntime is not initialized. Call Initialize method first.");
         }
+    }   
+
+    public static IAsyncEnumerable<StreamingChatMessageContent> Prompt(string prompt, byte[]? imageData = null, string imageMimeType = "image/jpeg") 
+    {
+        ThrowIfNotInitialized();
+        if (imageData != null)
+        {
+            chatHistory.AddUserMessage([
+                new TextContent(prompt),
+                new ImageContent(imageData, imageMimeType),
+            ]);
+        }
+        else
+        {
+            chatHistory.AddUserMessage(prompt);
+        }
+        return chat.GetStreamingChatMessageContentsAsync(chatHistory, kernel: kernel);        
     }
+    #endregion
 
-    [DllImport("ggml", CallingConvention = CallingConvention.Cdecl)]
-    public static extern void ggml_backend_load_all();
+    #region Fields
+    public static bool isInitialized = false;
+    
+    public static Kernel kernel = new Kernel();
 
-    public static LLamaSharpChatCompletion? chat;
+#pragma warning disable SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+    public static IChatCompletionService chat = new OpenAIChatCompletionService("unsloth_gemma-3n-E2B-it-GGUF_gemma-3n-E2B-it-UD-Q4_K_XL.gguf", new Uri("http://localhost:8080/v1"), null);
+#pragma warning restore SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
-    public static Kernel kernel = new Kernel(); 
-
+    public static Microsoft.SemanticKernel.ChatCompletion.ChatHistory chatHistory = new Microsoft.SemanticKernel.ChatCompletion.ChatHistory();
+    #endregion
 }

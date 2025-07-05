@@ -304,6 +304,17 @@ namespace Dina
 #pragma warning restore SYSLIB0014 // Type or member is obsolete
         }
 
+        public static void VerifyNotNull(params object?[] objects)
+        {             
+            for(var i = 0; i < objects.Length;  i++)
+            {
+                if (objects[i] is null)
+                {
+                    throw new ArgumentNullException($"Object at index {i} in args is null.");
+                }
+            }
+        }
+
         #endregion
 
         #region Fields
