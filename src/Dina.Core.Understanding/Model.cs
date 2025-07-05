@@ -6,15 +6,16 @@ using LLama.Native;
 using LLamaSharp.SemanticKernel.ChatCompletion;
 using Microsoft.Extensions.AI;  
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 
 using Microsoft.SemanticKernel.ChatCompletion;
-using OllamaSharp;
+
 using System.Linq;
 using System.Runtime.InteropServices;
 
 
-public enum RuntimeType
+public enum ModelRuntimeType
 {
     LlamaCpp,
     OpenApiCompat
@@ -22,9 +23,9 @@ public enum RuntimeType
 
 public class Model : Runtime
 {
-    public static bool Initialize(RuntimeType runtimeType, string llamacppPath, string modelPath)
+    public static bool Initialize(ModelRuntimeType runtimeType, string llamacppPath, string modelPath)
     {
-        if (runtimeType == RuntimeType.LlamaCpp)
+        if (runtimeType == ModelRuntimeType.LlamaCpp)
         {
             Info("Using llama.cpp embedded library at {0} with model {1}", llamacppPath, modelPath);    
             NativeLibraryConfig.LLama
@@ -47,7 +48,8 @@ public class Model : Runtime
             chat = new LLamaSharpChatCompletion(ex);
 
             var builder = Kernel.CreateBuilder();
-            builder.Services.AddSingleton<IChatCompletionService>((serviceProvider) => chat);
+            builder.Services.AddSingleton(Runtime.logger);
+            builder.Services.AddSingleton<IChatCompletionService>(chat);
 
             kernel = builder.Build();
             IsInitialized = true;
@@ -56,9 +58,10 @@ public class Model : Runtime
         {
             Info("Using OpenAI compatible API at {0} with model {1}", llamacppPath, modelPath);
             var builder = Kernel.CreateBuilder();
-            kernel = 
-                builder.AddOpenAIChatCompletion(modelPath, new Uri(llamacppPath), null)
-                .Build();
+            builder.Services.AddSingleton(Runtime.logger);
+            builder.AddOpenAIChatCompletion(modelPath, new Uri(llamacppPath), null);
+ 
+            kernel = builder.Build();
             IsInitialized = true;
         }
         

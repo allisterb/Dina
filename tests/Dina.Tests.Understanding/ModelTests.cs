@@ -14,7 +14,7 @@ namespace Dina.Tests.Understanding
                  .CreateLogger();
             Runtime.Initialize("Dina", "Tests", false, new SerilogLoggerFactory(logger).CreateLogger("Dina"));
           
-            Model.Initialize(RuntimeType.OpenApiCompat, "http://localhost:8080/v1", "unsloth_gemma-3n-E2B-it-GGUF_gemma-3n-E2B-it-UD-Q4_K_XL.gguf");
+            Model.Initialize(ModelRuntimeType.OpenApiCompat, "http://localhost:8080/v1", "C:\\Users\\Allister\\AppData\\Local\\llama.cpp\\unsloth_gemma-3n-E2B-it-GGUF_gemma-3n-E2B-it-UD-Q4_K_XL.gguf");
         }
 
         [Fact]
