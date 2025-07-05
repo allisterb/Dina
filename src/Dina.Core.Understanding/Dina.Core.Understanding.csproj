@@ -7,8 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Ollama" Version="1.59.0-alpha" />
-    <PackageReference Include="OllamaSharp" Version="5.2.6" />
+    <PackageReference Include="LLamaSharp.semantic-kernel" Version="0.24.0" />
+    <PackageReference Include="Microsoft.Extensions.AI.Abstractions" Version="9.6.0" />
+    <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="1.59.0" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI" Version="1.59.0" />
+    <PackageReference Include="Microsoft.SemanticKernel.Core" Version="1.59.0" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="9.0.2" />
   </ItemGroup>
 

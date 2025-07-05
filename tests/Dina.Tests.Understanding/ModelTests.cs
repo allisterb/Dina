@@ -1,10 +1,20 @@
+using Microsoft.Extensions.Logging.Abstractions;
+using Serilog;
+using Serilog.Extensions.Logging;
 namespace Dina.Tests.Understanding
 {
     public class ModelTests
     {
         static ModelTests()
         {
-            Model.Initialize().Wait();
+            var logger = new LoggerConfiguration()
+                 .Enrich.FromLogContext()
+                 .WriteTo.File(Path.Combine(Runtime.AssemblyLocation, "Dina.log"))
+                 
+                 .CreateLogger();
+            Runtime.Initialize("Dina", "Tests", false, new SerilogLoggerFactory(logger).CreateLogger("Dina"));
+          
+            Model.Initialize(RuntimeType.OpenApiCompat, "http://localhost:8080/v1", "unsloth_gemma-3n-E2B-it-GGUF_gemma-3n-E2B-it-UD-Q4_K_XL.gguf");
         }
 
         [Fact]
@@ -13,15 +23,15 @@ namespace Dina.Tests.Understanding
         [Fact]
         public async Task CanStartChat()
         {
-            var chat = Model.StartChat("You are Dina, an agent to assist users with document intelligence tasks.");
-            Assert.NotNull(chat);
-            var responses = chat.SendAsync("Hello, how are you?");
-            await foreach (var response in responses)
+            var resp = Model.Prompt("hello my name is bob");
+            string s = "";
+            Assert.NotNull(resp);
+            await foreach (var response in resp)
             {
                 Assert.NotNull(response);
-                Assert.NotEmpty(response);
-                Console.WriteLine(response);
+                s += response;
             }
+            Assert.NotNull(s);
         }
 
     }

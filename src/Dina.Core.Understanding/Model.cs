@@ -1,41 +1,85 @@
 ﻿namespace Dina;
 
-using System.Linq;
+using LLama;
+using LLama.Common;
+using LLama.Native;
+using LLamaSharp.SemanticKernel.ChatCompletion;
+using Microsoft.Extensions.AI;  
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.SemanticKernel;
 
+using Microsoft.SemanticKernel.ChatCompletion;
 using OllamaSharp;
+using System.Linq;
+using System.Runtime.InteropServices;
+
+
+public enum RuntimeType
+{
+    LlamaCpp,
+    OpenApiCompat
+}  
 
 public class Model : Runtime
 {
-    public static async Task<bool> Initialize()
+    public static bool Initialize(RuntimeType runtimeType, string llamacppPath, string modelPath)
     {
-        if (!await ollama.IsRunningAsync())
+        if (runtimeType == RuntimeType.LlamaCpp)
         {
-            Error("Ollama is not running. Please start the Ollama server first.");
-            return false;   
-        }
-        var op = Begin("Downloading gemma3n:latest model. This only needs to be done once");
-        await foreach (var status in ollama.PullModelAsync("gemma3n:latest"))
-            Info("{0}% of {1} bytes complete.  Status: {2}", status.Percent, status.Total, status.Status);
-        if ((await ollama.ListLocalModelsAsync()).Any(m => m.Name == "gemma3n:latest"))
-        {
-            op.Complete();
-            ollama.SelectedModel = "gemma3n:latest";
+            Info("Using llama.cpp embedded library at {0} with model {1}", llamacppPath, modelPath);    
+            NativeLibraryConfig.LLama
+                .WithAutoFallback(true)
+                .WithCuda(false)
+                .WithVulkan(false)
+                .WithAvx(AvxLevel.None)
+                .WithSearchDirectory(llamacppPath)
+                .WithLogCallback(Runtime.logger);
+
+
+            var parameters = new ModelParams(modelPath)
+            {
+                GpuLayerCount = 99 // How many layers to offload to GPU. Please adjust it according to your GPU memory.
+            };
+            
+
+            LLamaWeights model = LLamaWeights.LoadFromFile(parameters);
+            var ex = new StatelessExecutor(model, parameters, Runtime.logger);
+            chat = new LLamaSharpChatCompletion(ex);
+
+            var builder = Kernel.CreateBuilder();
+            builder.Services.AddSingleton<IChatCompletionService>((serviceProvider) => chat);
+
+            kernel = builder.Build();
             IsInitialized = true;
-            Info("Model gemma3n:latest is ready to use.");
-            return true;
         }
         else
         {
-            Error("Failed to download model gemma3n:latest.");
-            return false;
-        }  
+            Info("Using OpenAI compatible API at {0} with model {1}", llamacppPath, modelPath);
+            var builder = Kernel.CreateBuilder();
+            kernel = 
+                builder.AddOpenAIChatCompletion(modelPath, new Uri(llamacppPath), null)
+                .Build();
+            IsInitialized = true;
+        }
+        
+        return IsInitialized;
     }
 
     public static bool IsInitialized = false;
-    
-    public static Chat StartChat(string prompt) => new Chat(ollama, prompt);
-    
-    public static OllamaApiClient ollama = new OllamaApiClient("http://localhost:11434");
 
-    
+    public static async IAsyncEnumerable<string> Prompt(string prompt) 
+    {
+        await foreach (var r in kernel.InvokePromptStreamingAsync(prompt))
+        {
+            yield return r.ToString();
+        }
+    }
+
+    [DllImport("ggml", CallingConvention = CallingConvention.Cdecl)]
+    public static extern void ggml_backend_load_all();
+
+    public static LLamaSharpChatCompletion? chat;
+
+    public static Kernel kernel = new Kernel(); 
+
 }
