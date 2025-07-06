@@ -32,7 +32,6 @@ public class ModelConversation : Runtime
         {
             var endpoint = new Uri(llamaPath);
 #pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-
             var _client = new OllamaApiClient(endpoint, model);
             if (!_client.IsRunningAsync().Result)
             {
@@ -49,7 +48,7 @@ public class ModelConversation : Runtime
             {
                 Temperature = 0.1f,
                 ModelId = model,
-                NumPredict = 2048,
+                NumPredict = 512,
                 ExtensionData = new Dictionary<string, object>()
                 {
                     { "num_gpu", 30 } // Ollama specific setting for number of layers to offload to GPU.
@@ -101,14 +100,13 @@ public class ModelConversation : Runtime
             {
                 Temperature = 0.1f,
                 ModelId = model,
-                MaxTokens = 1024,
+                MaxTokens = 512,
                 ExtensionData = new Dictionary<string, object>()
             };
             Info("Using OpenAI compatible API at {0} with model {1}", llamaPath, model);
         }
 
         var builder = Kernel.CreateBuilder();
-      
         builder.Services.AddLogging(l => l.AddProvider(loggerProvider));
         builder.Services.AddSingleton<IChatCompletionService>(chat);
         kernel = builder.Build();
@@ -133,15 +131,15 @@ public class ModelConversation : Runtime
             return;
         };
 
-        var function = KernelFunctionFactory.CreateFromMethod(describeLambda, "describe");
+        //var function = KernelFunctionFactory.CreateFromMethod(describeLambda, "describe");
         //this.promptExecutionSettings.FunctionChoiceBehavior = FunctionChoiceBehavior.Required([function], autoInvoke: false);
 
 
         if (imageData != null)
         {
-            messages.AddSystemMessage("you are an expert technician that will extract information from images");
+            //messages.AddSystemMessage("you are an expert technician that will extract information from images");
             messages.AddUserMessage(new ChatMessageContentItemCollection {
-                new Microsoft.SemanticKernel.TextContent("Extract a short description for the image[img-0]<image> then a longer markdown description"),
+                new Microsoft.SemanticKernel.TextContent(prompt),
                 new ImageContent(imageData, imageMimeType),
             });
         }
@@ -149,29 +147,8 @@ public class ModelConversation : Runtime
         {
             messages.AddUserMessage(prompt);
         }
-        return chat.GetStreamingChatMessageContentsAsync(messages, kernel: kernel, executionSettings: promptExecutionSettings);        
+        return chat.GetStreamingChatMessageContentsAsync(messages, promptExecutionSettings, kernel);        
     }
-    /*
-    public void TestOllamaMultimodal()
-    {
-        var _client = (OllamaApiClient) client;
-        _client.ChatAsync(new OllamaSharp.Models.Chat.ChatRequest()
-        {
-            Messages = new OllamaSharp.Models.Chat.Message[]
-            {
-                new OllamaSharp.Models.Chat.Message()
-                {
-                    Role = OllamaSharp.Models.Chat.ChatRole.User,
-                    Content = new OllamaSharp.Models.Chat.MessageBuilder().
-                    {
-                        Images = 
-                        
-                    }
-                }
-            },
-        })
-    }
-    */
     #endregion
 
     #region Fields

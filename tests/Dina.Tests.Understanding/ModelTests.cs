@@ -25,7 +25,7 @@ namespace Dina.Tests.Understanding
         public async Task CanStartOllamaGemini3nChat()
         {
             var mc = new ModelConversation(ModelRuntime.Ollama, OllamaModels.Gemma3_4b);
-            var resp = mc.Prompt("Describe this image", File.ReadAllBytes("C:\\Users\\Allister\\Pictures\\applogo.png"), "image/png");
+            var resp = mc.Prompt("What kind of image is this?", File.ReadAllBytes("C:\\Users\\Allister\\Pictures\\applogo.png"), "image/png");
             string s = "";
             Assert.NotNull(resp);
             await foreach (var response in resp)
