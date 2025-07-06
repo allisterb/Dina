@@ -71,6 +71,7 @@ public class ModelConversation : Runtime
 
             var parameters = new LLama.Common.ModelParams(model)
             {
+                FlashAttention = true,
                 GpuLayerCount = 30 // How many layers to offload to GPU. Please adjust it according to your GPU memory.
             };
             
@@ -84,7 +85,6 @@ public class ModelConversation : Runtime
 #pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             client = chat.AsChatClient();
 #pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-            
             Info("Using llama.cpp embedded library at {0} with model {1}", llamaPath, model);
         }
         else
@@ -108,7 +108,7 @@ public class ModelConversation : Runtime
 
         var builder = Kernel.CreateBuilder();
         builder.Services.AddLogging(l => l.AddProvider(loggerProvider));
-        builder.Services.AddSingleton<IChatCompletionService>(chat);
+        builder.Services.AddSingleton(chat);
         kernel = builder.Build();
         if (systemPrompts != null)
         {
@@ -141,6 +141,7 @@ public class ModelConversation : Runtime
             messages.AddUserMessage(new ChatMessageContentItemCollection {
                 new Microsoft.SemanticKernel.TextContent(prompt),
                 new ImageContent(imageData, imageMimeType),
+                
             });
         }
         else

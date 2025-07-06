@@ -419,6 +419,8 @@ FodyWeavers.xsd
 
 # WebSharper
 lib/**/*
+bin/**/*
+**/tests/**/*
 **/build/**/*
 **/wwwroot/Scripts/**/*
 **/wwwroot/Content/**/*

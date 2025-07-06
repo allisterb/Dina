@@ -109,7 +109,7 @@ namespace Dina
         public static LoggerOp Begin(string messageTemplate, params object[] args) => new LoggerOp(logger, messageTemplate, args);
 
         [DebuggerStepThrough]
-        public static string FailIfFileNotFound(string filePath)
+        public static string FailIfFileDoesNotExist(string filePath)
         {
             if (filePath.StartsWith("http://") || filePath.StartsWith("https://"))
             {
@@ -129,6 +129,15 @@ namespace Dina
             return filename;
         }
 
+        [DebuggerStepThrough]
+        public static string CreateIfDirectoryDoesNotExist(string dirPath)
+        {
+           if (!Directory.Exists(dirPath))
+            {
+                Directory.CreateDirectory(dirPath);
+            }
+            return dirPath;
+        }
 
         [DebuggerStepThrough]
         public static object? GetProp(object o, string name)
@@ -145,7 +154,7 @@ namespace Dina
         public static string? RunCmd(string cmdName, string arguments = "", string? workingDir = null, DataReceivedEventHandler? outputHandler = null, DataReceivedEventHandler? errorHandler = null,
             bool checkExists = true, bool isNETFxTool = false, bool isNETCoreTool = false)
         {
-            if (checkExists && !(File.Exists(cmdName) || (isNETCoreTool && File.Exists(cmdName.Replace(".exe", "")))))
+            if (checkExists && !(File.Exists(cmdName) || (File.Exists(cmdName + ".exe"))|| (isNETCoreTool && File.Exists(cmdName.Replace(".exe", "")))))
             {
                 Error("The executable {0} does not exist.", cmdName);
                 return null;
@@ -316,6 +325,19 @@ namespace Dina
             }
         }
 
+        public static string RandomString(int length)
+        {
+            const string pool = "abcdefghijklmnopqrstuvwxyz0123456789";
+            var builder = new StringBuilder();
+
+            for (var i = 0; i < length; i++)
+            {
+                var c = pool[Rng.Next(0, pool.Length)];
+                builder.Append(c);
+            }
+
+            return builder.ToString();
+        }
         #endregion
 
         #region Fields
