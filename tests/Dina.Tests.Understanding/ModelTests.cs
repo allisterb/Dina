@@ -9,8 +9,8 @@ namespace Dina.Tests.Understanding
         {
             var logger = new LoggerConfiguration()
                  .Enrich.FromLogContext()
+                 .WriteTo.Console() 
                  .WriteTo.File(Path.Combine(Runtime.AssemblyLocation, "Dina.log"))
-                 
                  .CreateLogger();
             Runtime.Initialize("Dina", "Tests", false, new SerilogLoggerFactory(logger).CreateLogger("Dina"));
             //
@@ -25,7 +25,7 @@ namespace Dina.Tests.Understanding
         [Fact]
         public async Task CanStartChat()
         {
-            var resp = Model.Prompt("What kind of document is this?", File.ReadAllBytes("C:\\OneDrive\\Pictures\\Other\\Eunice\\travel_authorization.png"), "image/png");
+            var resp = Model.Prompt("What kind of document is this?", File.ReadAllBytes("C:\\OneDrive\\Pictures\\Other\\Eunice\\eevaccinecard2g.png"), "image/png");
             string s = "";
             Assert.NotNull(resp);
             await foreach (var response in resp)
@@ -34,6 +34,7 @@ namespace Dina.Tests.Understanding
                 s += response;
             }
             Assert.NotNull(s);
+            Console.WriteLine(s);
         }
 
     }
