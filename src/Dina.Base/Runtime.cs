@@ -68,7 +68,7 @@ namespace Dina
         #endregion
 
         #region Methods
-        public static void Initialize(string toolname, string logname, bool debug, ILogger l)
+        public static void Initialize(string toolname, string logname, bool debug, ILoggerFactory lf, ILoggerProvider lp)
         {
             lock (__lock)
             {
@@ -81,7 +81,8 @@ namespace Dina
                 ToolName = toolname;
                 LogName = logname;
                 DebugEnabled = debug;
-                logger = l;
+                loggerFactory = lf;
+                logger = lf.CreateLogger(toolname);
                 RuntimeInitialized = true;
             }
         }
@@ -318,7 +319,9 @@ namespace Dina
         #endregion
 
         #region Fields
-        public static ILogger logger = NullLogger.Instance;    
+        public static ILogger logger = NullLogger.Instance;   
+        public static ILoggerFactory loggerFactory = NullLoggerFactory.Instance;
+        public static ILoggerProvider loggerProvider = NullLoggerProvider.Instance; 
         protected static object __lock = new object();
         #endregion
     }

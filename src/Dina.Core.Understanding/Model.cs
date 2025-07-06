@@ -1,17 +1,21 @@
 ﻿namespace Dina;
 
-using Microsoft.Extensions.DependencyInjection;
+
+using System.ComponentModel;
+
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Microsoft.SemanticKernel.Connectors.Ollama;
-
+using Microsoft.SemanticKernel.Connectors.OpenAI;
+using OllamaSharp;
 using LLama.Native;
 using LLamaSharp.SemanticKernel.ChatCompletion;
-using OllamaSharp;
 
-public enum ModelRuntimeType
+public enum ModelRuntime
 {
     Ollama,
     LlamaCpp,
@@ -21,25 +25,31 @@ public enum ModelRuntimeType
 public class ModelConversation : Runtime
 {
     #region Constructors
-    public ModelConversation(ModelRuntimeType runtimeType, string llamaPath, string model)
+    public ModelConversation(ModelRuntime runtimeType, string model, string llamaPath = "http://localhost:11434", string[]? systemPrompts = null)
     {
         this.runtimeType = runtimeType;
-        if (runtimeType == ModelRuntimeType.Ollama)
+        if (runtimeType == ModelRuntime.Ollama)
         {
+            var endpoint = new Uri(llamaPath);
 #pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-            var _client = new OllamaApiClient(new OllamaApiClient.Configuration() { Model = model, Uri = new Uri(llamaPath) });
+
+            var _client = new OllamaApiClient(endpoint, model);
             if (!_client.IsRunningAsync().Result)
             {
                 throw new InvalidOperationException($"Ollama API at {llamaPath} is not running. Please start the Ollama server.");
             }
-            client = _client;   
-            chat = client.AsChatCompletionService();
+            client = _client;
+#pragma warning disable SKEXP0070 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+#pragma warning disable CS0618 // Type or member is obsolete
+            chat = new OllamaChatCompletionService(model, endpoint, loggerFactory);
+#pragma warning restore CS0618 // Type or member is obsolete
+#pragma warning restore SKEXP0070 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 #pragma warning disable SKEXP0070 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             promptExecutionSettings = new OllamaPromptExecutionSettings()
             {
                 Temperature = 0.1f,
                 ModelId = model,
-                NumPredict = 1024,
+                NumPredict = 2048,
                 ExtensionData = new Dictionary<string, object>()
                 {
                     { "num_gpu", 30 } // Ollama specific setting for number of layers to offload to GPU.
@@ -50,7 +60,7 @@ public class ModelConversation : Runtime
 
             Info("Using Ollama API at {0} with model {1}", llamaPath, model);
         }
-        else if (runtimeType == ModelRuntimeType.LlamaCpp)
+        else if (runtimeType == ModelRuntime.LlamaCpp)
         { 
             NativeLibraryConfig.LLama
                 .WithAutoFallback(true)
@@ -96,35 +106,77 @@ public class ModelConversation : Runtime
             };
             Info("Using OpenAI compatible API at {0} with model {1}", llamaPath, model);
         }
-        
+
         var builder = Kernel.CreateBuilder();
-        builder.Services.AddSingleton(Runtime.logger);
+      
+        builder.Services.AddLogging(l => l.AddProvider(loggerProvider));
         builder.Services.AddSingleton<IChatCompletionService>(chat);
         kernel = builder.Build();
+        if (systemPrompts != null)
+        {
+            foreach (var systemPrompt in systemPrompts)
+            {
+                messages.AddSystemMessage(systemPrompt);
+            }
+        }   
     }
     #endregion
 
     #region Methods
     public IAsyncEnumerable<StreamingChatMessageContent> Prompt(string prompt, byte[]? imageData = null, string imageMimeType = "image/jpeg") 
     {
+        var describeLambda = [Description("Describe image")] (
+    [Description("Short description")] string shortDescription,
+    [Description("Long description")] string longDescription
+) =>
+        {
+            return;
+        };
+
+        var function = KernelFunctionFactory.CreateFromMethod(describeLambda, "describe");
+        //this.promptExecutionSettings.FunctionChoiceBehavior = FunctionChoiceBehavior.Required([function], autoInvoke: false);
+
+
         if (imageData != null)
         {
-            chatHistory.AddUserMessage([
-                new Microsoft.SemanticKernel.TextContent(prompt),
+            messages.AddSystemMessage("you are an expert technician that will extract information from images");
+            messages.AddUserMessage(new ChatMessageContentItemCollection {
+                new Microsoft.SemanticKernel.TextContent("Extract a short description for the image[img-0]<image> then a longer markdown description"),
                 new ImageContent(imageData, imageMimeType),
-            ]);
+            });
         }
         else
         {
-            chatHistory.AddUserMessage(prompt);
+            messages.AddUserMessage(prompt);
         }
-        return chat.GetStreamingChatMessageContentsAsync(chatHistory, kernel: kernel, executionSettings: promptExecutionSettings);        
+        return chat.GetStreamingChatMessageContentsAsync(messages, kernel: kernel, executionSettings: promptExecutionSettings);        
     }
+    /*
+    public void TestOllamaMultimodal()
+    {
+        var _client = (OllamaApiClient) client;
+        _client.ChatAsync(new OllamaSharp.Models.Chat.ChatRequest()
+        {
+            Messages = new OllamaSharp.Models.Chat.Message[]
+            {
+                new OllamaSharp.Models.Chat.Message()
+                {
+                    Role = OllamaSharp.Models.Chat.ChatRole.User,
+                    Content = new OllamaSharp.Models.Chat.MessageBuilder().
+                    {
+                        Images = 
+                        
+                    }
+                }
+            },
+        })
+    }
+    */
     #endregion
 
     #region Fields
 
-    public ModelRuntimeType runtimeType;
+    public ModelRuntime runtimeType;
 
     public Kernel kernel = new Kernel();
 
@@ -132,8 +184,19 @@ public class ModelConversation : Runtime
     
     public IChatCompletionService chat;
 
-    public ChatHistory chatHistory = new ChatHistory();
+    public ChatHistory messages = new ChatHistory();
 
     public PromptExecutionSettings promptExecutionSettings;
     #endregion
+
+}
+
+public class OllamaModels
+{
+    #region Constants
+    public const string Gemma3_4b_it_q4_K_M = "gemma3:4b-it-q4_K_M";
+    public const string Gemma3n_2eb = "gemma3n:2eb";
+    public const string Gemma3_4b = "gemma3:4b";
+    #endregion
+
 }
