@@ -12,20 +12,18 @@ namespace Dina.Tests.Understanding
                  .WriteTo.Console() 
                  .WriteTo.File(Path.Combine(Runtime.AssemblyLocation, "Dina.log"))
                  .CreateLogger();
-            Runtime.Initialize("Dina", "Tests", false, new SerilogLoggerFactory(logger).CreateLogger("Dina"));
+            Runtime.Initialize("Dina.Core.Understanding", "Tests", false, new SerilogLoggerFactory(logger).CreateLogger("Dina.Tests.Understanding"));
             //
             //Model.Initialize(ModelRuntimeType.OpenApiCompat, "http://localhost:8080/v1", "C:\\Users\\Allister\\AppData\\Local\\llama.cpp\\unsloth_gemma-3n-E2B-it-GGUF_gemma-3n-E2B-it-UD-Q4_K_XL.gguf");
-            Model.Initialize(ModelRuntimeType.OpenApiCompat, "http://localhost:8080/v1", "D:\\Models\\gemma-3-4b-it-Q4_K_M.gguf");
+            //Model.Initialize(ModelRuntimeType.OpenApiCompat, "http://localhost:8080/v1", "D:\\Models\\gemma-3-4b-it-Q4_K_M.gguf");
 
         }
 
         [Fact]
-        public void CanInitialize() => Assert.True(Model.isInitialized);
-
-        [Fact]
-        public async Task CanStartChat()
+        public async Task CanStartOllamaGemini3nChat()
         {
-            var resp = Model.Prompt("What kind of document is this?", File.ReadAllBytes("C:\\OneDrive\\Pictures\\Other\\Eunice\\eevaccinecard2g.png"), "image/png");
+            var mc = new ModelConversation(ModelRuntimeType.Ollama, "http://localhost:11434", "gemma3n:e2b");
+            var resp = mc.Prompt("What kind of document is this?", File.ReadAllBytes("C:\\OneDrive\\Pictures\\Other\\Eunice\\eevaccinecard2g.png"), "image/png");
             string s = "";
             Assert.NotNull(resp);
             await foreach (var response in resp)

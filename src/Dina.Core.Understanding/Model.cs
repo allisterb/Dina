@@ -27,17 +27,22 @@ public class ModelConversation : Runtime
         if (runtimeType == ModelRuntimeType.Ollama)
         {
 #pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-            client = new OllamaApiClient(new OllamaApiClient.Configuration() { Model = model, Uri = new Uri(llamaPath) });
+            var _client = new OllamaApiClient(new OllamaApiClient.Configuration() { Model = model, Uri = new Uri(llamaPath) });
+            if (!_client.IsRunningAsync().Result)
+            {
+                throw new InvalidOperationException($"Ollama API at {llamaPath} is not running. Please start the Ollama server.");
+            }
+            client = _client;   
             chat = client.AsChatCompletionService();
 #pragma warning disable SKEXP0070 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             promptExecutionSettings = new OllamaPromptExecutionSettings()
             {
-                Temperature = 0.1f, // Ollama specific setting for temperature
+                Temperature = 0.1f,
                 ModelId = model,
                 NumPredict = 1024,
                 ExtensionData = new Dictionary<string, object>()
                 {
-                    { "num_gpu", 30 } // Ollama specific setting for number of GPUs to use
+                    { "num_gpu", 30 } // Ollama specific setting for number of layers to offload to GPU.
                 }
             };
 #pragma warning restore SKEXP0070 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
@@ -81,15 +86,17 @@ public class ModelConversation : Runtime
             client = chat.AsChatClient();
 #pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 #pragma warning restore SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-
+            
+            promptExecutionSettings = new OpenAIPromptExecutionSettings()
+            {
+                Temperature = 0.1f,
+                ModelId = model,
+                MaxTokens = 1024,
+                ExtensionData = new Dictionary<string, object>()
+            };
             Info("Using OpenAI compatible API at {0} with model {1}", llamaPath, model);
         }
-        promptExecutionSettings = new OpenAIPromptExecutionSettings()
-        {
-            Temperature = 0.1f, // OpenAI specific setting for temperature
-            ModelId = model,
-            ExtensionData = new Dictionary<string, object>()
-        };
+        
         var builder = Kernel.CreateBuilder();
         builder.Services.AddSingleton(Runtime.logger);
         builder.Services.AddSingleton<IChatCompletionService>(chat);
