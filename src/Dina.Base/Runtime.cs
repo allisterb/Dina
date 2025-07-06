@@ -123,6 +123,12 @@ namespace Dina
         }
 
         [DebuggerStepThrough]
+        public static Result<T> FileDoesNotExistFailure<T>(string path) => Result<T>.Failure($"The file {path} does not exist.");
+
+        [DebuggerStepThrough]
+        public static Result<T> DirectoryDoesNotExistFailure<T>(string path) => Result<T>.Failure($"The directory {path} does not exist.");
+
+        [DebuggerStepThrough]
         public static string WarnIfFileExists(string filename)
         {
             if (File.Exists(filename)) Warn("File {0} exists, overwriting...", filename);

@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Dina.Core.Understanding\Dina.Core.Understanding.csproj" />
+    <ProjectReference Include="..\..\src\Dina.Understanding\Dina.Understanding.csproj" />
   </ItemGroup>
 
   <ItemGroup>

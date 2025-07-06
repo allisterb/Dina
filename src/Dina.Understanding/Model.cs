@@ -1,6 +1,5 @@
 ﻿namespace Dina;
 
-
 using System.ComponentModel;
 
 using Microsoft.Extensions.AI;
@@ -166,7 +165,6 @@ public class ModelConversation : Runtime
 
     public PromptExecutionSettings promptExecutionSettings;
     #endregion
-
 }
 
 public class OllamaModels

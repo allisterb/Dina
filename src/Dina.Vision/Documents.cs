@@ -12,7 +12,7 @@ public class Documents : Runtime
 
     public static Result<byte[][]> ConvertPdfToImages(string pdfFilePath, string outputDirectory)
     {
-        FailIfFileDoesNotExist(pdfFilePath);
+        if (!File.Exists(pdfFilePath)) return FileDoesNotExistFailure<byte[][]>(pdfFilePath);
         CreateIfDirectoryDoesNotExist(outputDirectory);
         var name = RandomString(10);
         var r = RunCmd(MuPdfToolPath, $"convert -o {outputDirectory}\\{name}-%d.png {pdfFilePath}");

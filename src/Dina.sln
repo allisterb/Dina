@@ -15,7 +15,7 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dina.Web.WebAudio", "Dina.W
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dina.Web.JQuery", "Dina.Web.JQuery\Dina.Web.JQuery.fsproj", "{F7156190-2F35-1236-782C-124D833F63DF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dina.Core.Understanding", "Dina.Core.Understanding\Dina.Core.Understanding.csproj", "{34EC76D7-C2F1-43B8-BBD8-A948372322BD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dina.Understanding", "Dina.Understanding\Dina.Understanding.csproj", "{34EC76D7-C2F1-43B8-BBD8-A948372322BD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dina.Base", "Dina.Base\Dina.Base.csproj", "{224247AD-FF15-4934-8CCF-E5B5D082F6C9}"
 EndProject
@@ -27,15 +27,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Interface", "Interface", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{C8D9803A-994B-4D34-AFB5-099398074E9C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dina.Core.Speech", "Dina.Core.Speech\Dina.Core.Speech.csproj", "{8A0B5DD4-818F-4098-820A-937FB8B1E646}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dina.Speech", "Dina.Speech\Dina.Speech.csproj", "{8A0B5DD4-818F-4098-820A-937FB8B1E646}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dina.Core.Vision", "Dina.Core.Vision\Dina.Core.Vision.csproj", "{A2AA37BD-D3AA-40CE-AFF6-10DAA6FC08C5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dina.Vision", "Dina.Vision\Dina.Vision.csproj", "{A2AA37BD-D3AA-40CE-AFF6-10DAA6FC08C5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dina.Tests.Vision", "..\tests\Dina.Tests.Vision\Dina.Tests.Vision.csproj", "{088C9729-14FE-4F41-B6A3-0C3C6792C6BB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{7D62759A-AB42-4074-94F1-D5E676B092D1}"
 	ProjectSection(SolutionItems) = preProject
 		..\.gitignore = ..\.gitignore
+		..\README.md = ..\README.md
 	EndProjectSection
 EndProject
 Global
