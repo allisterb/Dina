@@ -49,6 +49,42 @@ public struct Result<T>
 
 public static class Result
 {
+    public static Result<T> Success<T>(T value) => new Result<T>(ResultType.Success, value);
+
+    public static Result<T> Failure<T>(string? message, Exception? exception = null) => new Result<T>(ResultType.Failure, message: message, exception: exception);
+
+    public static Result<T> Failure<T>(string message, params object[] args) => new Result<T>(ResultType.Failure, message:string.Format(message, args));
+
+    public static Result<T> Failure<T>(string message, Exception exception, params object[] args) => new Result<T>(ResultType.Failure, exception:exception, message: string.Format(message, args));
+
+    public static Result<T> FailureError<T>(string message, Exception? exception = null)
+    {
+        if (exception is not null)
+        {
+            Runtime.Error(exception, message);
+            return Failure<T>(message, exception);
+        }
+        else
+        {
+            Runtime.Error(message);
+            return Failure<T>(message);
+        }
+    }
+
+    public static Result<T> FailureError<T>(string message, params object[] args)
+    {
+       
+        Runtime.Error(message, args);
+        return Failure<T>(message, args);
+        
+    }
+
+    public static Result<T> FailureError<T>(string message, Exception exception, params object[] args)
+    {
+        Runtime.Error(exception, message, args);
+        return Failure<T>(message, exception, args);
+    }
+
     public static async Task<Result<T>> ExecuteAsync<T>(Task<T> task, string? errorMessage = null) => await Result<T>.ExecuteAsync(task, errorMessage);
 
     public static bool Succedeed<T>(Result<T> result, out Result<T> r)

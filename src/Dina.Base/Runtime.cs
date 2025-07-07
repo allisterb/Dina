@@ -10,6 +10,8 @@ namespace Dina
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Logging.Abstractions;
 
+    using static Result;
+
     public abstract class Runtime
     {
         #region Constructors
@@ -157,13 +159,12 @@ namespace Dina
             Error((Exception)e.ExceptionObject, "Unhandled runtime error occurred.");   
         }
 
-        public static string? RunCmd(string cmdName, string arguments = "", string? workingDir = null, DataReceivedEventHandler? outputHandler = null, DataReceivedEventHandler? errorHandler = null,
+        public static Result<string> RunCmd(string cmdName, string arguments = "", string? workingDir = null, DataReceivedEventHandler? outputHandler = null, DataReceivedEventHandler? errorHandler = null,
             bool checkExists = true, bool isNETFxTool = false, bool isNETCoreTool = false)
         {
             if (checkExists && !(File.Exists(cmdName) || (File.Exists(cmdName + ".exe"))|| (isNETCoreTool && File.Exists(cmdName.Replace(".exe", "")))))
             {
-                Error("The executable {0} does not exist.", cmdName);
-                return null;
+                return FailureError<string>("The executable {0} does not exist.", cmdName);
             }
             using (Process p = new Process())
             {
@@ -221,13 +222,11 @@ namespace Dina
                     p.BeginOutputReadLine();
                     p.BeginErrorReadLine();
                     p.WaitForExit();
-                    return error.ToString().IsNotEmpty() ? null : output.ToString();
+                    return error.ToString().IsNotEmpty() ? Failure<string>(error.ToString()) : Success(output.ToString());
                 }
-
                 catch (Exception ex)
                 {
-                    Error(ex, "Error executing command {0} {1}", cmdName, arguments);
-                    return null;
+                    return FailureError<string>("Error executing command {0} {1}", ex, cmdName, arguments);
                 }
             }
         }

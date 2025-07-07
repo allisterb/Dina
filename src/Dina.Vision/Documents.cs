@@ -10,20 +10,25 @@ public class Documents : Runtime
 
     public static string MuPdfToolPath => Path.Combine(MuPdfPath, "mutool");
 
-    public static Result<byte[][]> ConvertPdfToImages(string pdfFilePath, string outputDirectory)
+    public static Result<byte[][]> ConvertPdfToImages(string pdfFilePath, string? outputDirectory = null)
     {
         if (!File.Exists(pdfFilePath)) return FileDoesNotExistFailure<byte[][]>(pdfFilePath);
+        outputDirectory ??= Path.Combine(AssemblyLocation, "convertpdf");
         CreateIfDirectoryDoesNotExist(outputDirectory);
         var name = RandomString(10);
         var r = RunCmd(MuPdfToolPath, $"convert -o {outputDirectory}\\{name}-%d.png {pdfFilePath}");
-        if (!string.IsNullOrEmpty(r))
+        if (!(r.IsSuccess && r.Value == ""))
         {
-            return Result<byte[][]>.Failure($"Failed to convert PDF to images using mutool: {r}");
+            return Failure<byte[][]> ($"Failed to convert PDF to images using mutool: {r.Message}");
+        }
+        else if ((r.IsSuccess && r.Value != ""))
+        {
+            return Failure<byte[][]>($"Failed to convert PDF to images using mutool: {r.Value}");
         }
         var output = Directory.GetFiles(outputDirectory, $"{name}-*.png", SearchOption.TopDirectoryOnly);
-        if (output is null)
+        if (output is null || output.Length == 0)
         {
-            return Result<byte[][]>.Failure("Failed to convert PDF to images using mutool: could not find generated images.");
+            return Failure<byte[][]>("Failed to convert PDF to images using mutool: could not find generated images.");
         }
         else
         {
@@ -32,7 +37,7 @@ public class Documents : Runtime
             {
                 File.Delete(f);
             }
-            return Result<byte[][]>.Success(result);    
+            return Success(result);    
         }
     }
 
