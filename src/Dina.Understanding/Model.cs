@@ -10,9 +10,10 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.Ollama;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
-using OllamaSharp;
-using LLama.Native;
 using LLamaSharp.SemanticKernel.ChatCompletion;
+using LLama.Native;
+using OllamaSharp;
+using LLamaSharp.SemanticKernel;
 
 public enum ModelRuntime
 {
@@ -30,19 +31,19 @@ public class ModelConversation : Runtime
         if (runtimeType == ModelRuntime.Ollama)
         {
             var endpoint = new Uri(llamaPath);
-#pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+#pragma warning disable SKEXP0001 
             var _client = new OllamaApiClient(endpoint, model);
             if (!_client.IsRunningAsync().Result)
             {
                 throw new InvalidOperationException($"Ollama API at {llamaPath} is not running. Please start the Ollama server.");
             }
             client = _client;
-#pragma warning disable SKEXP0070 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-#pragma warning disable CS0618 // Type or member is obsolete
+#pragma warning disable SKEXP0070 
+#pragma warning disable CS0618 
             chat = new OllamaChatCompletionService(model, endpoint, loggerFactory);
-#pragma warning restore CS0618 // Type or member is obsolete
-#pragma warning restore SKEXP0070 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-#pragma warning disable SKEXP0070 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+#pragma warning restore CS0618 
+#pragma warning restore SKEXP0070 
+#pragma warning disable SKEXP0070 
             promptExecutionSettings = new OllamaPromptExecutionSettings()
             {
                 Temperature = 0.1f,
@@ -50,11 +51,11 @@ public class ModelConversation : Runtime
                 NumPredict = 512,
                 ExtensionData = new Dictionary<string, object>()
                 {
-                    { "num_gpu", 30 } // Ollama specific setting for number of layers to offload to GPU.
+                    { "num_gpu", 35 } // Ollama specific setting for number of layers to offload to GPU.
                 }
             };
-#pragma warning restore SKEXP0070 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-#pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+#pragma warning restore SKEXP0070 
+#pragma warning restore SKEXP0001
 
             Info("Using Ollama API at {0} with model {1}", llamaPath, model);
         }
@@ -66,34 +67,37 @@ public class ModelConversation : Runtime
                 .WithVulkan(false)
                 .WithAvx(AvxLevel.None)
                 .WithSearchDirectory(llamaPath)
-                .WithLogCallback(Runtime.logger);
+                .WithLogCallback(logger);
 
             var parameters = new LLama.Common.ModelParams(model)
             {
                 FlashAttention = true,
-                GpuLayerCount = 30 // How many layers to offload to GPU. Please adjust it according to your GPU memory.
+                GpuLayerCount = 35 // How many layers to offload to GPU.
             };
             
             LLama.LLamaWeights lm = LLama.LLamaWeights.LoadFromFile(parameters);
-            var ex = new LLama.StatelessExecutor(lm, parameters, Runtime.logger);
-            chat = new LLamaSharpChatCompletion(ex);
-            promptExecutionSettings = new PromptExecutionSettings()
+            var ex = new LLama.StatelessExecutor(lm, parameters, logger);
+            promptExecutionSettings = new LLamaSharpPromptExecutionSettings()
             {
+                Temperature = 0.1f,
+                ModelId = model,
+                MaxTokens = 512,
                 ExtensionData = new Dictionary<string, object>()
             };
-#pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+            chat = new LLamaSharpChatCompletion(ex);
+#pragma warning disable SKEXP0001 
             client = chat.AsChatClient();
-#pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+#pragma warning restore SKEXP0001 
             Info("Using llama.cpp embedded library at {0} with model {1}", llamaPath, model);
         }
         else
         {
-#pragma warning disable SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-            chat = new OpenAIChatCompletionService(model, new Uri(llamaPath));
-#pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+#pragma warning disable SKEXP0010 
+            chat = new OpenAIChatCompletionService(model, new Uri(llamaPath), loggerFactory: loggerFactory);
+#pragma warning restore SKEXP0010 
+#pragma warning disable SKEXP0001
             client = chat.AsChatClient();
-#pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-#pragma warning restore SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+#pragma warning restore SKEXP0001 
             
             promptExecutionSettings = new OpenAIPromptExecutionSettings()
             {
@@ -104,9 +108,7 @@ public class ModelConversation : Runtime
             };
             Info("Using OpenAI compatible API at {0} with model {1}", llamaPath, model);
         }
-
         var builder = Kernel.CreateBuilder();
-        builder.Services.AddLogging(l => l.AddProvider(loggerProvider));
         builder.Services.AddSingleton(chat);
         kernel = builder.Build();
         if (systemPrompts != null)
@@ -120,23 +122,20 @@ public class ModelConversation : Runtime
     #endregion
 
     #region Methods
+    public IAsyncEnumerable<StreamingChatMessageContent> Prompt(string prompt, params object[] args)
+    {
+        var messageItems = new ChatMessageContentItemCollection()
+        {
+            new Microsoft.SemanticKernel.TextContent(string.Format(prompt, args))   
+        };
+        messages.AddUserMessage(messageItems);
+        return chat.GetStreamingChatMessageContentsAsync(messages, promptExecutionSettings, kernel);
+    }
+
     public IAsyncEnumerable<StreamingChatMessageContent> Prompt(string prompt, byte[]? imageData = null, string imageMimeType = "image/jpeg") 
     {
-        var describeLambda = [Description("Describe image")] (
-    [Description("Short description")] string shortDescription,
-    [Description("Long description")] string longDescription
-) =>
-        {
-            return;
-        };
-
-        //var function = KernelFunctionFactory.CreateFromMethod(describeLambda, "describe");
-        //this.promptExecutionSettings.FunctionChoiceBehavior = FunctionChoiceBehavior.Required([function], autoInvoke: false);
-
-
         if (imageData != null)
         {
-            //messages.AddSystemMessage("you are an expert technician that will extract information from images");
             messages.AddUserMessage(new ChatMessageContentItemCollection {
                 new Microsoft.SemanticKernel.TextContent(prompt),
                 new ImageContent(imageData, imageMimeType),

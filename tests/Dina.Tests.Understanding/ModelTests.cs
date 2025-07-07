@@ -38,9 +38,9 @@ namespace Dina.Tests.Understanding
         public async Task CanAskGemini3nAboutPdf()
         {
             var mc = new ModelConversation(ModelRuntime.Ollama, OllamaModels.Gemma3_4b);
-            var pdf = Documents.ConvertPdfToImages("..\\..\\..\\..\\data\\test.pdf");
+            var pdf = Documents.ConvertPdfToText("..\\..\\..\\..\\data\\test.pdf");
             Assert.True(pdf.IsSuccess);
-            var resp = mc.Prompt("What kind of image is this?", pdf.Value[0], "image/png");
+            var resp = mc.Prompt("What is the first question on the text: \n Text:{0}", pdf.Value[0]);
             string s = "";
             Assert.NotNull(resp);
             await foreach (var response in resp)

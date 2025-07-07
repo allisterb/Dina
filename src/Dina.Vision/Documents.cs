@@ -37,7 +37,40 @@ public class Documents : Runtime
             {
                 File.Delete(f);
             }
+            Info("Converted PDF {0} to {1} images of total size {2} bytes.", pdfFilePath, result.Length, result.Sum(i => i.Length));
             return Success(result);    
+        }
+    }
+
+    public static Result<string[]> ConvertPdfToText(string pdfFilePath, string? outputDirectory = null)
+    {
+        if (!File.Exists(pdfFilePath)) return FileDoesNotExistFailure<string[]>(pdfFilePath);
+        outputDirectory ??= Path.Combine(AssemblyLocation, "convertpdf");
+        CreateIfDirectoryDoesNotExist(outputDirectory);
+        var name = RandomString(10);
+        var r = RunCmd(MuPdfToolPath, $"convert -F text -o {outputDirectory}\\{name}-%d.txt {pdfFilePath}");
+        if (!(r.IsSuccess && r.Value == ""))
+        {
+            return Failure<string[]>($"Failed to convert PDF to text using mutool: {r.Message}");
+        }
+        else if ((r.IsSuccess && r.Value != ""))
+        {
+            return Failure<string[]>($"Failed to convert PDF to text using mutool: {r.Value}");
+        }
+        var output = Directory.GetFiles(outputDirectory, $"{name}-*.txt", SearchOption.TopDirectoryOnly);
+        if (output is null || output.Length == 0)
+        {
+            return Failure<string[]>("Failed to convert PDF to text using mutool: could not find generated text files.");
+        }
+        else
+        {
+            var result = output.Select(f => File.ReadAllText(f)).ToArray();
+            foreach (var f in output)
+            {
+                File.Delete(f);
+            }
+            Info("Converted PDF {0} to {1} strings of total size {2} characters.", pdfFilePath, result.Length, result.Sum(i => i.Length));
+            return Success(result);
         }
     }
 
