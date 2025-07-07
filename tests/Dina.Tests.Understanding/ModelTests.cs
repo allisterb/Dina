@@ -1,6 +1,6 @@
-using Microsoft.Extensions.Logging.Abstractions;
 using Serilog;
 using Serilog.Extensions.Logging;
+
 namespace Dina.Tests.Understanding
 {
     public class ModelTests
@@ -38,9 +38,11 @@ namespace Dina.Tests.Understanding
         public async Task CanAskGemini3nAboutPdf()
         {
             var mc = new ModelConversation(ModelRuntime.Ollama, OllamaModels.Gemma3_4b);
-            var pdf = Documents.ConvertPdfToText("..\\..\\..\\..\\data\\test.pdf");
-            Assert.True(pdf.IsSuccess);
-            var resp = mc.Prompt("What is the first question on the text: \n Text:{0}", pdf.Value[0]);
+            var pdfbin = File.ReadAllBytes("..\\..\\..\\..\\data\\test.pdf");   
+            var pdftext = Documents.ConvertPdfToText("..\\..\\..\\..\\data\\test.pdf");
+            Assert.True(pdftext.IsSuccess);
+            var resp = mc.Prompt("What is the first question on the document: Document:{0}", pdftext.Value[0]) ;
+            //var resp = mc.Prompt("What is the first question on the text: \n Text:{0}", pdftext.Value[0]);
             string s = "";
             Assert.NotNull(resp);
             await foreach (var response in resp)
@@ -49,7 +51,7 @@ namespace Dina.Tests.Understanding
                 s += response;
             }
             Assert.NotNull(s);
-            Console.WriteLine(s);
+ 
         }
     }
 }

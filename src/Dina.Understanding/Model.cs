@@ -42,8 +42,6 @@ public class ModelConversation : Runtime
 #pragma warning disable CS0618 
             chat = new OllamaChatCompletionService(model, endpoint, loggerFactory);
 #pragma warning restore CS0618 
-#pragma warning restore SKEXP0070 
-#pragma warning disable SKEXP0070 
             promptExecutionSettings = new OllamaPromptExecutionSettings()
             {
                 Temperature = 0.1f,
@@ -108,7 +106,7 @@ public class ModelConversation : Runtime
             };
             Info("Using OpenAI compatible API at {0} with model {1}", llamaPath, model);
         }
-        var builder = Kernel.CreateBuilder();
+        IKernelBuilder builder = Kernel.CreateBuilder();
         builder.Services.AddSingleton(chat);
         kernel = builder.Build();
         if (systemPrompts != null)
@@ -172,6 +170,7 @@ public class OllamaModels
     public const string Gemma3_4b_it_q4_K_M = "gemma3:4b-it-q4_K_M";
     public const string Gemma3n_2eb = "gemma3n:2eb";
     public const string Gemma3_4b = "gemma3:4b";
+    public const string Nomic_Embed_Text = "nomic-embed-text";
     #endregion
 
 }
