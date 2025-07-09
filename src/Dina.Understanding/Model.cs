@@ -49,7 +49,7 @@ public class ModelConversation : Runtime
                 NumPredict = 512,
                 ExtensionData = new Dictionary<string, object>()
                 {
-                    { "num_gpu", 35 } // Ollama specific setting for number of layers to offload to GPU.
+                    
                 }
             };
 #pragma warning restore SKEXP0070 
@@ -168,7 +168,7 @@ public class OllamaModels
 {
     #region Constants
     public const string Gemma3_4b_it_q4_K_M = "gemma3:4b-it-q4_K_M";
-    public const string Gemma3n_2eb = "gemma3n:2eb";
+    public const string Gemma3n_2eb = "gemma3n:e2b";
     public const string Gemma3_4b = "gemma3:4b";
     public const string Nomic_Embed_Text = "nomic-embed-text";
     #endregion

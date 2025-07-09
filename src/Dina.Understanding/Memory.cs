@@ -19,16 +19,15 @@ public class Memory : Runtime
             Endpoint = llamapath,
             TextModel = new OllamaModelConfig() { 
                 ModelName = textmodel,
-                MaxTokenTotal = 32 * 1024,
-                NumGpu = 35 
             },
             EmbeddingModel = new OllamaModelConfig() { 
                 ModelName = embeddingmodel,
-                MaxTokenTotal = 2048,
-                NumGpu = 35
             }
         };  
-        builder.Services.AddLogging(configure => configure.AddProvider(loggerProvider));
+        builder.Services.AddLogging(configure => 
+            configure
+            .AddProvider(loggerProvider)
+            .SetMinimumLevel(LogLevel.Debug));
         memory =
             builder
             .WithOllamaTextGeneration(ollamaconfig, new CL100KTokenizer())   
@@ -36,9 +35,14 @@ public class Memory : Runtime
             .Build<MemoryServerless>();
     }
 
-    public async Task<Result<string>> ImportAsync(string path, string index) => await ExecuteAsync(memory.ImportDocumentAsync(path, index:index));
-
+    public async Task<Result<string>> ImportAsync(string path, string index) 
+        => await ExecuteAsync(memory.ImportDocumentAsync(path, index: index), "Imported document {0} to index {1} with id {2}.",
+            "Failed to import document {0} to index {1}.", r => r, path, index);
+    
     public IAsyncEnumerable<MemoryAnswer> AskAsync(string question, string index) => memory.AskStreamingAsync(question, index:index);
+
+    public async Task<Result<SearchResult>> SearchAsync(string query, string index) 
+        => await ExecuteAsync(memory.SearchAsync(query, index: index), "Query \"{0}\" of index {1} returned {2} results", "", (r) => r.Results.Count.ToString(), query, index);
 
     #region Fields
     ModelRuntime modelRuntime;

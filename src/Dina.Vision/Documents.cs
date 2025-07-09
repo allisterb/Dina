@@ -1,5 +1,9 @@
 ﻿namespace Dina;
 
+using NAPS2.Images;
+using NAPS2.Images.ImageSharp;
+using NAPS2.Scan;
+
 using System;
 using System.IO;
 using static Dina.Result;
@@ -74,4 +78,28 @@ public class Documents : Runtime
         }
     }
 
+    public static async Task<string[]> GetScannerNames()
+    {
+        using var scanningContext = new ScanningContext(new ImageSharpImageContext());
+        var controller = new ScanController(scanningContext);
+        var devices = await controller.GetDeviceList();
+        return devices?.Select(d => d.Name).ToArray() ?? Array.Empty<string>();
+        
+    }
+    public static async Task Scan()
+    {
+        using ScanningContext scanningContext = new ScanningContext(new ImageSharpImageContext());
+
+        // To save memory, we can store scanned images on disk after initial processing.
+        // This will put files in the system temp folder, but you can use any folder.
+        //scanningContext.FileStorageManager = new FileStorageManager(Path.GetTempPath());
+
+        var controller = new ScanController(scanningContext);
+        var device = (await controller.GetDeviceList()).First();
+        var options = new ScanOptions
+        {
+            Device = device
+        };
+        
+    }
 }

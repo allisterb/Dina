@@ -51,6 +51,11 @@ public static class Result
 {
     public static Result<T> Success<T>(T value) => new Result<T>(ResultType.Success, value);
 
+    public static Result<T> SuccessInfo<T>(T value, string message, params object[] args)
+    {
+        Runtime.Info(message, args);
+        return Success(value);
+    }
     public static Result<T> Failure<T>(string? message, Exception? exception = null) => new Result<T>(ResultType.Failure, message: message, exception: exception);
 
     public static Result<T> Failure<T>(string message, params object[] args) => new Result<T>(ResultType.Failure, message:string.Format(message, args));
@@ -85,7 +90,35 @@ public static class Result
         return Failure<T>(message, exception, args);
     }
 
-    public static async Task<Result<T>> ExecuteAsync<T>(Task<T> task, string? errorMessage = null) => await Result<T>.ExecuteAsync(task, errorMessage);
+    public static async Task<Result<T>> ExecuteAsync<T>(Task<T> task, string? infoMessage = null, string? errorMessage = null, Func<T, string>? val = null, params object[] args)
+    {
+        var r = await Result<T>.ExecuteAsync(task, errorMessage);
+        if (r.IsSuccess && val is not null)
+        {
+            args = args.Append(val(r.Value)).ToArray();
+        }
+        if (r.IsSuccess && !string.IsNullOrEmpty(infoMessage))
+        {
+            Runtime.Info(string.Format(infoMessage, args));
+        }
+        else if (!r.IsSuccess && !string.IsNullOrEmpty(errorMessage) && r.Exception is not null)
+        {
+            if (!string.IsNullOrEmpty(errorMessage)) errorMessage = errorMessage + $":{r.Message}";
+            Runtime.Error(r.Exception, errorMessage, args);
+        }
+
+        else if (!r.IsSuccess && !string.IsNullOrEmpty(errorMessage))
+        {
+            if (!string.IsNullOrEmpty(errorMessage)) errorMessage = errorMessage + $":{r.Message}";
+            Runtime.Error(errorMessage, args);
+        }
+
+        else if (!r.IsSuccess && !string.IsNullOrEmpty(r.Message))
+        {
+            Runtime.Error(r.Message);
+        }
+        return r;
+    }
 
     public static bool Succedeed<T>(Result<T> result, out Result<T> r)
     {

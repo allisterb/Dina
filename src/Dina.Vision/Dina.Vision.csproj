@@ -7,6 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="NAPS2.Images.ImageSharp" Version="1.2.0" />
+    <PackageReference Include="NAPS2.Sdk" Version="1.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Dina.Base\Dina.Base.csproj" />
   </ItemGroup>
 
