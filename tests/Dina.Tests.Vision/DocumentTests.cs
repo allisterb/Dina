@@ -52,10 +52,10 @@ public class DocumentTests
     [Fact]
     public void CanOpenCvScan()
     {
-        Documents.ScanDocument("..\\..\\..\\..\\data\\eevaccinecard.jpg", saveImage: true);
+        //Documents.ScanDocument("..\\..\\..\\..\\data\\eevaccinecard.jpg", saveImage: true);
         //Assert.NotEmpty(images);
 
-        var s = new DocScanner();
-        s.Scan("..\\..\\..\\..\\data\\eevaccinecard.jpg");
+        var s = new OpenCvDocumentScanner();
+        s.Scan("..\\..\\..\\..\\data\\eevaccinecard.jpg", ".");
     }
 }
