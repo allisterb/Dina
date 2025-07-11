@@ -48,4 +48,14 @@ public class DocumentTests
         var images = await Documents.Scan();
         Assert.NotEmpty(images);
     }
+
+    [Fact]
+    public void CanOpenCvScan()
+    {
+        Documents.ScanDocument("..\\..\\..\\..\\data\\eevaccinecard.jpg", saveImage: true);
+        //Assert.NotEmpty(images);
+
+        var s = new DocScanner();
+        s.Scan("..\\..\\..\\..\\data\\eevaccinecard.jpg");
+    }
 }
