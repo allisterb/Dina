@@ -122,45 +122,72 @@ public class OpenCvDocumentScanner
         return Array.ConvertAll(screenCnt, p => new Point2f(p.X, p.Y));
     }
 
-    // Orders the points in the following order: top-left, top-right, bottom-right, bottom-left.
     public static Point2f[] OrderPoints(Point2f[] pts)
     {
-        Point2f[] rect = new Point2f[4];
-        float[] sum = pts.Select(p => p.X + p.Y).ToArray();
-        rect[0] = pts[Array.IndexOf(sum, sum.Min())];
-        rect[2] = pts[Array.IndexOf(sum, sum.Max())];
-        float[] diff = pts.Select(p => p.X - p.Y).ToArray();
-        rect[1] = pts[Array.IndexOf(diff, diff.Min())];
-        rect[3] = pts[Array.IndexOf(diff, diff.Max())];
-        return rect;
+        // Sort the points based on their x-coordinates.
+        var xSorted = pts.OrderBy(p => p.X).ToArray();
+
+        // Grab the left-most and right-most points from the sorted x-coordinate array.
+        Point2f[] leftMost = new Point2f[] { xSorted[0], xSorted[1] };
+        Point2f[] rightMost = new Point2f[] { xSorted[2], xSorted[3] };
+
+        // Sort the left-most coordinates according to their y-coordinates.
+        leftMost = leftMost.OrderBy(p => p.Y).ToArray();
+        Point2f tl = leftMost[0]; // top-left
+        Point2f bl = leftMost[1]; // bottom-left
+
+        // Calculate the Euclidean distance from the top-left point to each point in rightMost.
+        double[] distances = rightMost.Select(p => Math.Sqrt(Math.Pow(p.X - tl.X, 2) + Math.Pow(p.Y - tl.Y, 2))).ToArray();
+
+        // Sort rightMost by distance in descending order.
+        Point2f[] rightSorted = distances
+            .Select((d, idx) => new { d, pt = rightMost[idx] })
+            .OrderByDescending(x => x.d)
+            .Select(x => x.pt)
+            .ToArray();
+
+        // The point with the largest distance is bottom-right; the other is top-right.
+        Point2f br = rightSorted[0];
+        Point2f tr = rightSorted[1];
+
+        // Return the coordinates in top-left, top-right, bottom-right, and bottom-left order.
+        return [tl, tr, br, bl];
     }
+
+    private static double Distance(Point2f p1, Point2f p2)
+        => Math.Sqrt(Math.Pow(p1.X - p2.X, 2) + Math.Pow(p1.Y - p2.Y, 2));
+    
 
     // Applies a four-point perspective transform to obtain a top-down view of the document.
     public static Mat FourPointTransform(Mat image, Point2f[] pts)
     {
         pts = OrderPoints(pts);
-        Point2f tl = pts[0], tr = pts[1], br = pts[2], bl = pts[3];
 
-        double widthA = Math.Sqrt(Math.Pow(br.X - bl.X, 2) + Math.Pow(br.Y - bl.Y, 2));
-        double widthB = Math.Sqrt(Math.Pow(tr.X - tl.X, 2) + Math.Pow(tr.Y - tl.Y, 2));
-        int maxWidth = (int)Math.Max(widthA, widthB);
+            Point2f tl = pts[0];
+            Point2f tr = pts[1];
+            Point2f br = pts[2];
+            Point2f bl = pts[3];
 
-        double heightA = Math.Sqrt(Math.Pow(tr.X - br.X, 2) + Math.Pow(tr.Y - br.Y, 2));
-        double heightB = Math.Sqrt(Math.Pow(tl.X - bl.X, 2) + Math.Pow(tl.Y - bl.Y, 2));
-        int maxHeight = (int)Math.Max(heightA, heightB);
+            double widthA = Distance(br, bl);
+            double widthB = Distance(tr, tl);
+            double maxWidth = Math.Max(widthA, widthB);
 
-        Point2f[] dst = new Point2f[]
-        {
+            double heightA = Distance(tr, br);
+            double heightB = Distance(tl, bl);
+            double maxHeight = Math.Max(heightA, heightB);
+
+            Point2f[] dst = new Point2f[]
+            {
                 new Point2f(0, 0),
-                new Point2f(maxWidth - 1, 0),
-                new Point2f(maxWidth - 1, maxHeight - 1),
-                new Point2f(0, maxHeight - 1)
-        };
+                new Point2f((float)maxWidth - 1, 0),
+                new Point2f((float)maxWidth - 1, (float)maxHeight - 1),
+                new Point2f(0, (float)maxHeight - 1)
+            };
 
-        Mat M = Cv2.GetPerspectiveTransform(pts, dst);
-        Mat warped = new Mat();
-        Cv2.WarpPerspective(image, warped, M, new Size(maxWidth, maxHeight));
-        return warped;
+            Mat M = Cv2.GetPerspectiveTransform(pts, dst);
+            Mat warped = new Mat();
+            Cv2.WarpPerspective(image, warped, M, new Size((int)maxWidth, (int)maxHeight));
+            return warped;
     }
 
     // Scans the image at imagePath, detects the document, applies perspective transform,
