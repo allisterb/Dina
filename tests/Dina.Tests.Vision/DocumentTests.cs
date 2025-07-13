@@ -58,4 +58,14 @@ public class DocumentTests
         var s = new OpenCvDocumentScanner();
         s.Scan("..\\..\\..\\..\\data\\eevaccinecard.jpg", ".");
     }
+
+    [Fact]
+    public void CanOpenCvScan2()
+    {
+        //Documents.ScanDocument("..\\..\\..\\..\\data\\eevaccinecard.jpg", saveImage: true);
+        //Assert.NotEmpty(images);
+
+        OpenCvHoughLinesDocumentScanner.Scan("..\\..\\..\\..\\data\\eevaccinecard.jpg");
+        //s.Scan("..\\..\\..\\..\\data\\eevaccinecard.jpg", ".");
+    }
 }
