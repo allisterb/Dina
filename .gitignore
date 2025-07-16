@@ -425,3 +425,4 @@ bin/**/*
 **/build/**/*
 **/wwwroot/Scripts/**/*
 **/wwwroot/Content/**/*
+/src/python
