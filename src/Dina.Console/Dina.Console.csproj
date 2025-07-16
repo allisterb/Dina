@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommandLineParser" Version="2.6.0" />
+    <PackageReference Include="Spectre.Console" Version="0.50.0" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+    <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants> 
+  </PropertyGroup> 
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\ext\Colorful.Console\Colorful.Console.csproj" />
+    <ProjectReference Include="..\..\ext\ReadLine\ReadLine.csproj" />
+    <ProjectReference Include="..\Dina.Base\Dina.Base.csproj" />
+    <ProjectReference Include="..\Dina.Understanding\Dina.Understanding.csproj" />
+    <ProjectReference Include="..\Dina.Vision\Dina.Vision.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -64,6 +64,21 @@ namespace Dina
             }
         }
 
-        
+        public static T[] ConcatArrays<T>(this IEnumerable<T[]> arrays)
+        {
+            if (arrays == null || !arrays.Any())
+            {
+                return Array.Empty<T>();
+            }
+            int totalLength = arrays.Sum(arr => arr.Length);
+            T[] result = new T[totalLength];
+            int offset = 0;
+            foreach (var array in arrays)
+            {
+                Array.Copy(array, 0, result, offset, array.Length);
+                offset += array.Length;
+            }
+            return result;
+        }
     }
 }

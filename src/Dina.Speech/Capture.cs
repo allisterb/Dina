@@ -34,7 +34,7 @@ public class Audio : Runtime
                 while (current < buffer.Length && !ct.IsCancellationRequested)
                 {
                     var samplesAvailable = ALC.GetInteger(captureDevice, AlcGetInteger.CaptureSamples);
-                    if (samplesAvailable < 512) continue;
+                    if (samplesAvailable < 256) continue;
                     var samplesToRead = Math.Min(samplesAvailable, buffer.Length - current);
                     ALC.CaptureSamples(captureDevice, ref buffer[current], samplesToRead);
                     current += samplesToRead;
