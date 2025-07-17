@@ -3,6 +3,7 @@ using Internal.ReadLine.Abstractions;
 using System.Collections.Generic;
 using System.Threading;
 
+using Spectre.Console;
 namespace System
 {
     public static class ReadLine
@@ -22,7 +23,8 @@ namespace System
 
         public static string Read(string prompt = "", string @default = "")
         {
-            Console.Write(prompt);
+            AnsiConsole.Write(new Rule { Style = "grey" });
+            AnsiConsole.Markup(prompt);
             KeyHandler keyHandler = new KeyHandler(new Console2(), _history, AutoCompletionHandler);
             string text = GetText(keyHandler);
 

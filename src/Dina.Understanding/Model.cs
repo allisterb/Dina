@@ -130,20 +130,13 @@ public class ModelConversation : Runtime
         return chat.GetStreamingChatMessageContentsAsync(messages, promptExecutionSettings, kernel);
     }
 
-    public IAsyncEnumerable<StreamingChatMessageContent> Prompt(string prompt, byte[]? imageData = null, string imageMimeType = "image/jpeg") 
+    public IAsyncEnumerable<StreamingChatMessageContent> Prompt(string prompt, byte[]? imageData, string imageMimeType = "image/jpeg") 
     {
-        if (imageData != null)
-        {
-            messages.AddUserMessage(new ChatMessageContentItemCollection {
-                new Microsoft.SemanticKernel.TextContent(prompt),
-                new ImageContent(imageData, imageMimeType),
+        messages.AddUserMessage(new ChatMessageContentItemCollection {
+            new Microsoft.SemanticKernel.TextContent(prompt),
+            new ImageContent(imageData, imageMimeType),
                 
-            });
-        }
-        else
-        {
-            messages.AddUserMessage(prompt);
-        }
+        });
         return chat.GetStreamingChatMessageContentsAsync(messages, promptExecutionSettings, kernel);        
     }
     #endregion

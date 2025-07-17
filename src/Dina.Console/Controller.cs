@@ -1,7 +1,7 @@
 ﻿namespace Dina.Console;
 
 using System.Drawing;
-
+using Spectre.Console;
 using Co = Colorful.Console;
 
 internal class Controller
@@ -30,7 +30,7 @@ internal class Controller
 
     internal static void SetPrompt(string prompt) => promptString = prompt;
 
-    internal static void SetDefaultPrompt() => promptString = "|>";
+    internal static void SetDefaultPrompt() => promptString = "[blue]|>[/]";
 
     internal static void Start()
     {
@@ -50,6 +50,16 @@ internal class Controller
     internal static void HandleInput(DateTime time, string input)
     {
         inputEnabled = false;
+        var c = new ModelConversation(ModelRuntime.Ollama, OllamaModels.Gemma3n_2eb);
+        c.Prompt(input);    
+        Task.Run(async () =>
+        {
+            await foreach (var response in c.Prompt(input))
+            {
+                if (string.IsNullOrEmpty(response.Content)) continue;
+                AnsiConsole.Markup(response.Content);
+            }
+        }).Wait(); 
         /* 
         if (!string.IsNullOrEmpty(input.Trim()))
         {
@@ -66,9 +76,9 @@ internal class Controller
         Prompt();
     }
 
-    internal static void SayInfoLine(string template, params object[] args) => Co.WriteLineFormatted(template, Color.Pink, Color.PaleGoldenrod, args);
+    internal static void SayInfoLine(string template, params object[] args) => AnsiConsole.Markup(template, args);
 
-    internal static void SayErrorLine(string template, params object[] args) => Co.WriteLineFormatted(template, Color.Pink, Color.Red, args);
+    internal static void SayErrorLine(string template, params object[] args) => AnsiConsole.Markup(template, args);
     #endregion
     #region Fields
 
