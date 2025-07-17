@@ -50,29 +50,18 @@ internal class Controller
     internal static void HandleInput(DateTime time, string input)
     {
         inputEnabled = false;
-        var c = new ModelConversation(ModelRuntime.Ollama, OllamaModels.Gemma3n_2eb);
-        c.Prompt(input);    
+        if (activeConversation is null)
+        {
+            activeConversation = new ModelConversation(ModelRuntime.Ollama, OllamaModels.Gemma3n_2eb);
+        }    
         Task.Run(async () =>
         {
-            await foreach (var response in c.Prompt(input))
+            await foreach (var response in activeConversation.Prompt(input))
             {
                 if (string.IsNullOrEmpty(response.Content)) continue;
                 AnsiConsole.Markup(response.Content);
             }
         }).Wait(); 
-        /* 
-        if (!string.IsNullOrEmpty(input.Trim()))
-        {
-            if (!ActivePackage.HandleInput(time, input))
-            {
-                SayInfoLineIfDebug("Input handled by HOME package.");
-                if (!HomePackage.HandleInput(time, input))
-                {
-                    SayCouldNotUnderstand(input);
-                }
-            }
-        }
-        */
         Prompt();
     }
 
@@ -101,6 +90,8 @@ internal class Controller
     static string promptString = "|>";
 
     static bool inputEnabled = false;
+
+    static ModelConversation? activeConversation;
     #endregion
 }
 

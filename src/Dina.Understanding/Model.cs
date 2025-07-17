@@ -14,6 +14,7 @@ using LLamaSharp.SemanticKernel.ChatCompletion;
 using LLama.Native;
 using OllamaSharp;
 using LLamaSharp.SemanticKernel;
+using System.Text;
 
 public enum ModelRuntime
 {
@@ -120,24 +121,37 @@ public class ModelConversation : Runtime
     #endregion
 
     #region Methods
-    public IAsyncEnumerable<StreamingChatMessageContent> Prompt(string prompt, params object[] args)
+    public async IAsyncEnumerable<StreamingChatMessageContent> Prompt(string prompt, params object[] args)
     {
         var messageItems = new ChatMessageContentItemCollection()
         {
-            new Microsoft.SemanticKernel.TextContent(string.Format(prompt, args))   
+            new Microsoft.SemanticKernel.TextContent(string.Format(prompt, args))
         };
         messages.AddUserMessage(messageItems);
-        return chat.GetStreamingChatMessageContentsAsync(messages, promptExecutionSettings, kernel);
+        StringBuilder sb = new StringBuilder();
+        await foreach (var m in chat.GetStreamingChatMessageContentsAsync(messages, promptExecutionSettings, kernel))
+        {
+            if (m.Content is not null && !string.IsNullOrEmpty(m.Content))
+            {
+                sb.Append(m.Content);
+                yield return m;
+            }
+        }
+        messages.AddAssistantMessage(sb.ToString());
     }
 
-    public IAsyncEnumerable<StreamingChatMessageContent> Prompt(string prompt, byte[]? imageData, string imageMimeType = "image/jpeg") 
+    public async IAsyncEnumerable<StreamingChatMessageContent> Prompt(string prompt, byte[]? imageData, string imageMimeType = "image/jpeg") 
     {
         messages.AddUserMessage(new ChatMessageContentItemCollection {
             new Microsoft.SemanticKernel.TextContent(prompt),
             new ImageContent(imageData, imageMimeType),
                 
         });
-        return chat.GetStreamingChatMessageContentsAsync(messages, promptExecutionSettings, kernel);        
+        await foreach (var m in chat.GetStreamingChatMessageContentsAsync(messages, promptExecutionSettings, kernel))
+        {
+            if (m.InnerContent is not null && !string.IsNullOrEmpty(m.Content)) messages.Add((ChatMessageContent) m.InnerContent);    
+            yield return m;
+        }
     }
     #endregion
 
