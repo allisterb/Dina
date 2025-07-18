@@ -9,7 +9,7 @@ namespace Dina.Tests.Understanding
         {
             var logger = new LoggerConfiguration()
                  .Enrich.FromLogContext()
-                 .WriteTo.Console() 
+                 .WriteTo.Console()
                  .WriteTo.File(Path.Combine(Runtime.AssemblyLocation, "Dina.log"))
                  .CreateLogger();
             var lf = new SerilogLoggerFactory(logger);
@@ -38,10 +38,10 @@ namespace Dina.Tests.Understanding
         public async Task CanAskGemini3nAboutPdf()
         {
             var mc = new ModelConversation(ModelRuntime.Ollama, OllamaModels.Gemma3n_2eb);
-            var pdfbin = File.ReadAllBytes("..\\..\\..\\..\\data\\test.pdf");   
+            var pdfbin = File.ReadAllBytes("..\\..\\..\\..\\data\\test.pdf");
             var pdftext = Documents.ConvertPdfToText("..\\..\\..\\..\\data\\test.pdf");
             Assert.True(pdftext.IsSuccess);
-            var resp = mc.Prompt("What is the first question on the document: Document:{0}", pdftext.Value[0]) ;
+            var resp = mc.Prompt("What is the first question on the document: Document:{0}", pdftext.Value[0]);
             //var resp = mc.Prompt("What is the first question on the text: \n Text:{0}", pdftext.Value[0]);
             string s = "";
             Assert.NotNull(resp);
@@ -51,7 +51,14 @@ namespace Dina.Tests.Understanding
                 s += response;
             }
             Assert.NotNull(s);
- 
+
+        }
+
+        [Fact]
+        public async Task CanCallKernelFun()
+        {
+            var mc = new ModelConversation(ModelRuntime.Ollama, OllamaModels.Gemma3n_2eb_tools);
+            await mc.CallFunction();
         }
     }
 }

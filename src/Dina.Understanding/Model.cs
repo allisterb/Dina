@@ -1,20 +1,26 @@
 ﻿namespace Dina;
 
-using System.ComponentModel;
 
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.Ollama;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
-using LLamaSharp.SemanticKernel.ChatCompletion;
-using LLama.Native;
+using Microsoft.SemanticKernel.Agents;
+
 using OllamaSharp;
+using LLama.Native;
 using LLamaSharp.SemanticKernel;
+using LLamaSharp.SemanticKernel.ChatCompletion;
+
+using System.ComponentModel;
+using System.Runtime.InteropServices;
 using System.Text;
+
+
+
 
 public enum ModelRuntime
 {
@@ -47,7 +53,8 @@ public class ModelConversation : Runtime
             {
                 Temperature = 0.1f,
                 ModelId = model,
-                NumPredict = 512,
+                FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(),
+        
                 ExtensionData = new Dictionary<string, object>()
                 {
                     
@@ -108,7 +115,9 @@ public class ModelConversation : Runtime
             Info("Using OpenAI compatible API at {0} with model {1}", llamaPath, model);
         }
         IKernelBuilder builder = Kernel.CreateBuilder();
-        builder.Services.AddSingleton(chat);
+        builder.AddOllamaChatCompletion(model, new Uri(llamaPath));
+        //builder.Services.AddSingleton(chat);
+        //builder.Plugins.AddFromType<TestFunctions>("Time");
         kernel = builder.Build();
         if (systemPrompts != null)
         {
@@ -153,6 +162,100 @@ public class ModelConversation : Runtime
             yield return m;
         }
     }
+
+    public async Task CallFunction()
+    {
+        string prompt = "Finish the followin knock - knock joke.Knock, knock.Who's there ? { {$input} }, { {$input} } who ? ";
+        KernelFunction jokeFunction =
+            kernel.CreateFunctionFromPrompt(prompt);
+        var c = kernel.CreateFunctionFromMethod(GetCurrentTime, "GetCurrentTime", "Get the current time for a city");
+        var arguments = new KernelArguments()
+        {
+            ["input"] = "Boo"
+        };
+        //var joke = await kernel.InvokeAsync(jokeFunction,arguments);
+        //Console.WriteLine(joke);
+
+        //var j2 = kernel.ImportPluginFromType<TestFunctions>("Time");
+        var plugin =
+       KernelPluginFactory.CreateFromFunctions("Time",
+                                       "Get the current time for a city",
+                                       [KernelFunctionFactory.CreateFromMethod(GetCurrentTime)]);
+        kernel.Plugins.Add(plugin);
+
+        ChatCompletionAgent agent = new() // 👈🏼 Definition of the agent
+        {
+            Instructions = """
+                   Answer questions about different locations.
+                   For France, use the time format: HH:MM. HH goes from 00 to 23 hours, MM goes from 00 to 59 minutes.
+                   """,
+            Name = "Location Agent",
+            Kernel = kernel,
+            LoggerFactory = loggerFactory,
+            // 👇🏼 Allows the model to decide whether to call the function
+            Arguments = new KernelArguments(new OllamaPromptExecutionSettings
+            {
+                FunctionChoiceBehavior = FunctionChoiceBehavior.Auto([c], autoInvoke:true),
+                
+            }
+                )
+        };
+        
+        
+        //agent.Kernel.Plugins.Add(plugin);
+        /*
+        //j2
+        //var result = await kernel.InvokeAsync(j2["RandomTheme"]);
+
+        /*
+         var plugin =
+     KernelPluginFactory.CreateFromFunctions("Time",
+                                     "Get the current time for a city",
+                                     [KernelFunctionFactory.CreateFromMethod(GetCurrentTime)]);
+        
+
+
+        */
+        ChatHistory _chat =
+[
+    new ChatMessageContent(AuthorRole.User, "What time is it in Illzach, France?")
+];
+        
+        /*
+        //messages.AddUserMessage("What time is it in Illzach, France?");
+        var response = await chat.GetChatMessageContentAsync("What time is it in Illzach, France?", new OllamaPromptExecutionSettings()
+        {
+            FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: true),
+        }, kernel);
+        {
+            Console.WriteLine(response);
+            //Console.WriteLine(response.Content);
+        }
+        */
+
+        await foreach (var m in agent.InvokeAsync(_chat, options:new AgentInvokeOptions() { KernelArguments = new KernelArguments(new OllamaPromptExecutionSettings
+        {
+            
+            FunctionChoiceBehavior = FunctionChoiceBehavior.Required(),
+
+        })}))
+       
+        {
+           Console.WriteLine(m.Message.ToString()); 
+        }
+
+    }
+
+    public static void Test2()
+    {
+        var c = new OllamaApiClient("http://localhost:1344", OllamaModels.Gemma3n_2eb_tools);
+        //c.ChatAsync(new OllamaSharp.Models.Chat.ChatRequest() { })
+    }
+    // 👇🏼 Define a time tool
+    [KernelFunction, Description("Get the current time for a city")]
+    [return: Description("The current time for a city")]
+    string GetCurrentTime(string city) => $"It is {DateTime.Now.Hour}:{DateTime.Now.Minute} in {city}.";
+
     #endregion
 
     #region Fields
@@ -176,6 +279,7 @@ public class OllamaModels
     #region Constants
     public const string Gemma3_4b_it_q4_K_M = "gemma3:4b-it-q4_K_M";
     public const string Gemma3n_2eb = "gemma3n:e2b";
+    public const string Gemma3n_2eb_tools = "gemma3n:e2b_tools_test";
     public const string Gemma3_4b = "gemma3:4b";
     public const string Nomic_Embed_Text = "nomic-embed-text";
     #endregion
