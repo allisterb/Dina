@@ -13,6 +13,7 @@ using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.Ollama;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using OllamaSharp;
+using Serilog;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -38,6 +39,7 @@ public class ModelConversation : Runtime
             var endpoint = new Uri(llamaPath);
 #pragma warning disable SKEXP0001 
             var _client = new OllamaApiClient(endpoint, model);
+
             if (!_client.IsRunningAsync().Result)
             {
                 throw new InvalidOperationException($"Ollama API at {llamaPath} is not running. Please start the Ollama server.");
@@ -45,13 +47,14 @@ public class ModelConversation : Runtime
             client = _client;
 #pragma warning disable SKEXP0070 
 #pragma warning disable CS0618 
-            chat = new OllamaChatCompletionService(model, endpoint, loggerFactory);
-#pragma warning restore CS0618 
+            chat = _client.AsChatCompletionService();
+
+#pragma warning restore CS0618
             promptExecutionSettings = new OllamaPromptExecutionSettings()
             {
                 Temperature = 0.1f,
                 ModelId = model,
-                FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(),
+                FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: true),
 
                 ExtensionData = new Dictionary<string, object>()
                 {
@@ -119,9 +122,12 @@ public class ModelConversation : Runtime
                 options.AddHttpMessageHandler<MessageHandler1>();
 
             });
-        //builder.AddOllamaChatCompletion(model, new Uri(llamaPath));
-        builder.Services.AddSingleton(chat);
-        //builder.Plugins.AddFromType<TestFunctions>("Time");
+       
+        
+        builder.Services.AddChatClient(client).UseFunctionInvocation(loggerFactory);
+        
+        builder.Plugins.AddFromType<TestFunctions>("Time");
+
 
 
         kernel = builder.Build();
@@ -192,7 +198,7 @@ public class ModelConversation : Runtime
        KernelPluginFactory.CreateFromFunctions("Time",
                                        "Get the current time for a city",
                                        [KernelFunctionFactory.CreateFromMethod(GetCurrentTime)]);
-        kernel.Plugins.Add(plugin);
+        //kernel.Plugins.Add(plugin);
 
         ChatCompletionAgent agent = new() // 👈🏼 Definition of the agent
         {
@@ -230,7 +236,7 @@ public class ModelConversation : Runtime
         */
         ChatHistory _chat =
 [
-    new ChatMessageContent(AuthorRole.User, "What time is it in Illzach, France?")
+    new ChatMessageContent(AuthorRole.User, "What is the current time in Illzach, France?")
 ];
 
         /*
@@ -245,14 +251,23 @@ public class ModelConversation : Runtime
         }
         */
 
-        
+
 
         await foreach (var m in agent.InvokeAsync(_chat))
 
         {
             Console.WriteLine(m.Message.Content);
-            _chat.Add(m);   
+            //_chat.Add(m);   
+
         }
+
+        var cx = await chat.GetChatMessageContentAsync(_chat, new OllamaPromptExecutionSettings
+        {
+            FunctionChoiceBehavior = FunctionChoiceBehavior.Required([c], autoInvoke: true),
+
+        }, kernel);
+        var mm = cx.ToChatMessage();
+
     }
 
     public static void Test2()
@@ -307,6 +322,7 @@ public class MessageHandler1 : DelegatingHandler
         return response;
     }
 }
+
 
 public class Rootobject
 {
