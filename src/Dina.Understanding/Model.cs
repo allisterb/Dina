@@ -1,6 +1,6 @@
 ﻿namespace Dina;
 
-
+using DocumentFormat.OpenXml.Wordprocessing;
 using LLama.Native;
 using LLamaSharp.SemanticKernel;
 using LLamaSharp.SemanticKernel.ChatCompletion;
@@ -13,13 +13,9 @@ using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.Ollama;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using OllamaSharp;
-using Serilog;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Text;
-
-
-
 
 public enum ModelRuntime
 {
@@ -28,43 +24,47 @@ public enum ModelRuntime
     OpenApiCompat
 }
 
+public class OllamaModels
+{
+    #region Constants
+    public const string Gemma3_4b_it_q4_K_M = "gemma3:4b-it-q4_K_M";
+    public const string Gemma3n_2eb = "gemma3n:e2b";
+    public const string Gemma3n_2eb_tools = "gemma3n:e2b_tools_test";
+    public const string Gemma3_4b = "gemma3:4b";
+    public const string Nomic_Embed_Text = "nomic-embed-text";
+    #endregion
+
+}
+
 public class ModelConversation : Runtime
 {
     #region Constructors
-    public ModelConversation(ModelRuntime runtimeType, string model, string llamaPath = "http://localhost:11434", string[]? systemPrompts = null)
+    public ModelConversation(ModelRuntime runtimeType, string model, string runtimePath = "http://localhost:11434", string[]? systemPrompts = null)
     {
         this.runtimeType = runtimeType;
+        this.runtimePath = runtimePath;
+        this.model = model;
         if (runtimeType == ModelRuntime.Ollama)
         {
-            var endpoint = new Uri(llamaPath);
-#pragma warning disable SKEXP0001 
+            var endpoint = new Uri(runtimePath);
+#pragma warning disable SKEXP0001, SKEXP0070 
             var _client = new OllamaApiClient(endpoint, model);
-
+            
             if (!_client.IsRunningAsync().Result)
             {
-                throw new InvalidOperationException($"Ollama API at {llamaPath} is not running. Please start the Ollama server.");
+                throw new InvalidOperationException($"Ollama API at {runtimePath} is not running. Please start the Ollama server.");
             }
             client = _client;
-#pragma warning disable SKEXP0070 
-#pragma warning disable CS0618 
-            chat = _client.AsChatCompletionService();
-
-#pragma warning restore CS0618
+            chat = _client.AsChatCompletionService(kernel.Services);
             promptExecutionSettings = new OllamaPromptExecutionSettings()
             {
                 Temperature = 0.1f,
                 ModelId = model,
                 FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: true),
-
                 ExtensionData = new Dictionary<string, object>()
-                {
-
-                }
             };
-#pragma warning restore SKEXP0070 
-#pragma warning restore SKEXP0001
-
-            Info("Using Ollama API at {0} with model {1}", llamaPath, model);
+#pragma warning restore SKEXP0070, SKEXP0001 
+            Info("Using Ollama API at {0} with model {1}", runtimePath, model);
         }
         else if (runtimeType == ModelRuntime.LlamaCpp)
         {
@@ -73,7 +73,7 @@ public class ModelConversation : Runtime
                 .WithCuda(false)
                 .WithVulkan(false)
                 .WithAvx(AvxLevel.None)
-                .WithSearchDirectory(llamaPath)
+                .WithSearchDirectory(runtimePath)
                 .WithLogCallback(logger);
 
             var parameters = new LLama.Common.ModelParams(model)
@@ -88,19 +88,19 @@ public class ModelConversation : Runtime
             {
                 Temperature = 0.1f,
                 ModelId = model,
-                MaxTokens = 512,
+                FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: true),
                 ExtensionData = new Dictionary<string, object>()
             };
             chat = new LLamaSharpChatCompletion(ex);
 #pragma warning disable SKEXP0001 
             client = chat.AsChatClient();
 #pragma warning restore SKEXP0001 
-            Info("Using llama.cpp embedded library at {0} with model {1}", llamaPath, model);
+            Info("Using llama.cpp embedded library at {0} with model {1}", runtimePath, model);
         }
         else
         {
 #pragma warning disable SKEXP0010 
-            chat = new OpenAIChatCompletionService(model, new Uri(llamaPath), loggerFactory: loggerFactory);
+            chat = new OpenAIChatCompletionService(model, new Uri(runtimePath), loggerFactory: loggerFactory);
 #pragma warning restore SKEXP0010 
 #pragma warning disable SKEXP0001
             client = chat.AsChatClient();
@@ -110,26 +110,19 @@ public class ModelConversation : Runtime
             {
                 Temperature = 0.1f,
                 ModelId = model,
-                MaxTokens = 512,
+                FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: true), 
                 ExtensionData = new Dictionary<string, object>()
             };
-            Info("Using OpenAI compatible API at {0} with model {1}", llamaPath, model);
+            Info("Using OpenAI compatible API at {0} with model {1}", runtimePath, model);
         }
+        
         IKernelBuilder builder = Kernel.CreateBuilder();
-        builder.Services.ConfigureHttpClientDefaults(
-            options =>
-            {
-                options.AddHttpMessageHandler<MessageHandler1>();
-
-            });
-       
-        
+        builder.Services.AddLogging(builder =>
+            builder
+                .SetMinimumLevel(LogLevel.Debug)
+                .AddProvider(loggerProvider)
+            );
         builder.Services.AddChatClient(client).UseFunctionInvocation(loggerFactory);
-        
-        builder.Plugins.AddFromType<TestFunctions>("Time");
-
-
-
         kernel = builder.Build();
         if (systemPrompts != null)
         {
@@ -142,6 +135,13 @@ public class ModelConversation : Runtime
     #endregion
 
     #region Methods
+
+    public ModelConversation AddChatPlugin<T>(string pluginName)
+    {
+        kernel.Plugins.AddFromType<T>(pluginName);
+        return this;
+    }
+
     public async IAsyncEnumerable<StreamingChatMessageContent> Prompt(string prompt, params object[] args)
     {
         var messageItems = new ChatMessageContentItemCollection()
@@ -180,111 +180,31 @@ public class ModelConversation : Runtime
         messages.AddAssistantMessage(sb.ToString());
     }
 
-    public async Task CallFunction()
+    public ChatCompletionAgent CreateAgent(string instructions, string name = "Default Agent")
     {
-        string prompt = "Finish the followin knock - knock joke.Knock, knock.Who's there ? { {$input} }, { {$input} } who ? ";
-        KernelFunction jokeFunction =
-            kernel.CreateFunctionFromPrompt(prompt);
-        var c = kernel.CreateFunctionFromMethod(GetCurrentTime, "GetCurrentTime", "Get the current time for a city");
-        var arguments = new KernelArguments()
+        return new ChatCompletionAgent()
         {
-            ["input"] = "Boo"
-        };
-        //var joke = await kernel.InvokeAsync(jokeFunction,arguments);
-        //Console.WriteLine(joke);
-
-        //var j2 = kernel.ImportPluginFromType<TestFunctions>("Time");
-        var plugin =
-       KernelPluginFactory.CreateFromFunctions("Time",
-                                       "Get the current time for a city",
-                                       [KernelFunctionFactory.CreateFromMethod(GetCurrentTime)]);
-        //kernel.Plugins.Add(plugin);
-
-        ChatCompletionAgent agent = new() // 👈🏼 Definition of the agent
-        {
-            Instructions = """
-                   Answer questions about different locations.
-                   For France, use the time format: HH:MM.
-                   HH goes from 00 to 23 hours, MM goes from 00 to 59 minutes
-                   """,
-            Name = "Location Agent",
+            Instructions = instructions,
+            Name = name,
             Kernel = kernel,
             LoggerFactory = loggerFactory,
-            // 👇🏼 Allows the model to decide whether to call the function
-            Arguments = new KernelArguments(new OllamaPromptExecutionSettings
-            {
-                FunctionChoiceBehavior = FunctionChoiceBehavior.Required([c], autoInvoke: true),
-
-            }
-                )
+            Arguments = new KernelArguments(promptExecutionSettings)
         };
+    }   
 
-
-        //agent.Kernel.Plugins.Add(plugin);
-        /*
-        //j2
-        //var result = await kernel.InvokeAsync(j2["RandomTheme"]);
-
-        /*
-         var plugin =
-     KernelPluginFactory.CreateFromFunctions("Time",
-                                     "Get the current time for a city",
-                                     [KernelFunctionFactory.CreateFromMethod(GetCurrentTime)]);
-        
-
-
-        */
-        ChatHistory _chat =
-[
-    new ChatMessageContent(AuthorRole.User, "What is the current time in Illzach, France?")
-];
-
-        /*
-        //messages.AddUserMessage("What time is it in Illzach, France?");
-        var response = await chat.GetChatMessageContentAsync("What time is it in Illzach, France?", new OllamaPromptExecutionSettings()
-        {
-            FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: true),
-        }, kernel);
-        {
-            Console.WriteLine(response);
-            //Console.WriteLine(response.Content);
-        }
-        */
-
-
-
-        await foreach (var m in agent.InvokeAsync(_chat))
-
-        {
-            Console.WriteLine(m.Message.Content);
-            //_chat.Add(m);   
-
-        }
-
-        var cx = await chat.GetChatMessageContentAsync(_chat, new OllamaPromptExecutionSettings
-        {
-            FunctionChoiceBehavior = FunctionChoiceBehavior.Required([c], autoInvoke: true),
-
-        }, kernel);
-        var mm = cx.ToChatMessage();
-
-    }
-
-    public static void Test2()
+    public AgentConversation CreateAgentConversation(string instructions, string name = "Default Agent", KernelArguments? arguments = null)
     {
-        var c = new OllamaApiClient("http://localhost:1344", OllamaModels.Gemma3n_2eb_tools);
-        //c.ChatAsync(new OllamaSharp.Models.Chat.ChatRequest() { })
-    }
-    // 👇🏼 Define a time tool
-    [KernelFunction, Description("Get the current time for a city")]
-    [return: Description("The current time for a city")]
-    string GetCurrentTime(string city) => $"It is {DateTime.Now.Hour}:{DateTime.Now.Minute} in {city}.";
-
+        return new AgentConversation(this.runtimeType, this.model, instructions, name, this.runtimePath);
+    }   
     #endregion
 
     #region Fields
 
     public ModelRuntime runtimeType;
+
+    public string runtimePath;
+
+    public string model;    
 
     public Kernel kernel = new Kernel();
 
@@ -298,49 +218,45 @@ public class ModelConversation : Runtime
     #endregion
 }
 
-public class OllamaModels
+public class AgentConversation : ModelConversation
 {
-    #region Constants
-    public const string Gemma3_4b_it_q4_K_M = "gemma3:4b-it-q4_K_M";
-    public const string Gemma3n_2eb = "gemma3n:e2b";
-    public const string Gemma3n_2eb_tools = "gemma3n:e2b_tools_test";
-    public const string Gemma3_4b = "gemma3:4b";
-    public const string Nomic_Embed_Text = "nomic-embed-text";
-    #endregion
-
-}
-
-public class MessageHandler1 : DelegatingHandler
-{
-    protected async override Task<HttpResponseMessage> SendAsync(
-        HttpRequestMessage request, CancellationToken cancellationToken)
+    public AgentConversation(ModelRuntime runtimeType, string model, string instructions, string name = "Default Agent", string runtimePath = "http://localhost:11434", string[]? systemPrompts = null) 
+                : base(runtimeType, model, runtimePath, systemPrompts)
     {
-        //Debug.WriteLine("Process request");
-        // Call the inner handler.
-        var response = await base.SendAsync(request, cancellationToken);
-        //Debug.WriteLine("Process response");
-        return response;
+        agent = new ChatCompletionAgent()
+        {
+            Instructions = instructions,
+            Name = name,
+            Kernel = kernel,
+            LoggerFactory = loggerFactory,
+            Arguments = new KernelArguments(promptExecutionSettings),
+        };
+
+        options = new AgentInvokeOptions()
+        {
+            OnIntermediateMessage = (message) =>
+            {
+                if (message.Content is not null && !string.IsNullOrEmpty(message.Content))
+                {
+                    Info(message.ToString());   
+                }
+                return Task.CompletedTask;
+            },  
+        };  
     }
-}
 
+    public async new IAsyncEnumerable<AgentResponseItem<ChatMessageContent>> Prompt(string prompt, params object[] args)
+    {
+        messages.AddUserMessage(string.Format(prompt, args));
+        await foreach(var m in agent.InvokeAsync(messages, options: options))
+        {
+            messages.Add(m);    
+            yield return m;
+        }
+           
+    }
+    protected ChatCompletionAgent agent;
 
-public class Rootobject
-{
-    public Tool_Calls[] tool_calls { get; set; }
-}
-
-public class Tool_Calls
-{
-    public Function function { get; set; }
-}
-
-public class Function
-{
-    public string name { get; set; }
-    public Arguments arguments { get; set; }
-}
-
-public class Arguments
-{
-    public string city { get; set; }
+    protected AgentInvokeOptions options;
+    
 }

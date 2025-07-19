@@ -55,10 +55,19 @@ namespace Dina.Tests.Understanding
         }
 
         [Fact]
-        public async Task CanCallKernelFun()
+        public async Task CanCallKernelFunction()
         {
-            var mc = new ModelConversation(ModelRuntime.Ollama, OllamaModels.Gemma3n_2eb_tools);
-            await mc.CallFunction();
+            var ac = new AgentConversation(ModelRuntime.Ollama, OllamaModels.Gemma3n_2eb_tools,
+                "Answer questions about different locations.\r\n" +
+                "For France, use the time format: HH:MM.\r\n HH goes from 00 to 23 hours, MM goes from 00 to 59 minutes\r\n",
+                "Location Agent"
+                );
+            ac.AddChatPlugin<TestFunctions>("Time");
+            await foreach (var response in ac.Prompt("What is the time in Paris, France?"))
+            {
+                Assert.NotNull(response);
+                Console.WriteLine(response);
+            }   
         }
     }
 }

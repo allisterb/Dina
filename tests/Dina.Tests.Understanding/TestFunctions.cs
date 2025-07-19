@@ -1,18 +1,14 @@
-﻿using System;
+﻿namespace Dina;
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using Microsoft.SemanticKernel;
 
-
-namespace Dina;
-
 public class TestFunctions
 {
-    [KernelFunction, Description("Take the square root of a number")]
+    [KernelFunction, Description("Get a random theme name for an art piece.")]
     public string RandomTheme()
     {
         var list = new List<string> { "boo", "dishes", "art", "needle", "tank", "police" };
