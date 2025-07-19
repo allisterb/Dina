@@ -15,11 +15,18 @@ You may call one or more functions to assist with the user query. You are provid
 {"type": "function", "function": {{ .Function }}}
 {{- end }}
 </tools>
+
 If you decide to invoke any functions you MUST provide all function calls invocations as objects  using the schema:
 tool_calls: [
 	{"function": {"name": <function-name>, "arguments": <args-json-object>}}
 ]
-You SHOULD NOT include any other text in the response if you invoke any functions, just the tool_calls object.
+
+**When you call a function, your response MUST start _exactly_ with:**
+tool_calls:[
+{"function": {"name": "...", "parameters": { ... }}}
+</tool_call>
+_No markdown ``` fences, no extra text and **no line break before  `tool_calls` **._
+
 {{- end }}
 <end_of_turn>
 {{- end }}
@@ -39,14 +46,14 @@ You SHOULD NOT include any other text in the response if you invoke any function
 
 {{- end }}
 {{ if not $last }}<end_of_turn>{{ end }}
-  {{ else if eq .Role "tool" }}
+{{ else if eq .Role "tool" }}
 <start_of_turn>user
 <tool_response>
 {{ .Content }}
 </tool_response>
 <end_of_turn>
-  {{ end }}
-  {{- if and (ne .Role "assistant") $last }}
+ {{ end }}
+ {{- if and (ne .Role "assistant") $last }}
 <start_of_turn>model
   {{ end }}
 {{- end }}
