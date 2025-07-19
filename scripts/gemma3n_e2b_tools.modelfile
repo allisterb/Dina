@@ -23,8 +23,8 @@ tool_calls: [
 
 **When you call a function, your response MUST start _exactly_ with:**
 tool_calls:[
-{"function": {"name": "...", "parameters": { ... }}}
-</tool_call>
+{"function": {"name": "...", "arguments": { ... }}}
+]
 _No markdown ``` fences, no extra text and **no line break before  `tool_calls` **._
 
 {{- end }}
@@ -38,12 +38,13 @@ _No markdown ``` fences, no extra text and **no line break before  `tool_calls` 
 {{ .Content }}<end_of_turn>
   {{ else if eq .Role "assistant" }}
 <start_of_turn>model
-{{ if .Content }}{{ .Content }}
-{{- else if .ToolCalls }}
+{{- if .ToolCalls }}
+<tool_call>
 {{- range .ToolCalls }}
 {"function" : {"name": "{{ .Function.Name }}", "arguments": {{ .Function.Arguments }}}}
 {{- end }}
-
+</tool_call>
+{{ else if .Content }}{{ .Content }}
 {{- end }}
 {{ if not $last }}<end_of_turn>{{ end }}
 {{ else if eq .Role "tool" }}
@@ -69,3 +70,4 @@ _No markdown ``` fences, no extra text and **no line break before  `tool_calls` 
 <start_of_turn>model
 {{ .Response }}{{ if .Response }}<end_of_turn>{{ end }}
 {{- end }}"""
+PARAMETER temperature 0.1
