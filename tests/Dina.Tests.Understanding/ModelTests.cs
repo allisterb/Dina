@@ -21,7 +21,7 @@ namespace Dina.Tests.Understanding
         [Fact]
         public async Task CanStartOllamaGemini3nChat()
         {
-            var mc = new ModelConversation(ModelRuntime.Ollama, OllamaModels.Gemma3n_2eb);
+            var mc = new ModelConversation(ModelRuntime.Ollama, OllamaModels.Gemma3n_2eb_tools);
             var resp = mc.Prompt("What kind of image is this?", File.ReadAllBytes("C:\\Users\\Allister\\Pictures\\applogo.png"), "image/png");
             string s = "";
             Assert.NotNull(resp);
@@ -37,7 +37,7 @@ namespace Dina.Tests.Understanding
         [Fact]
         public async Task CanAskGemini3nAboutPdf()
         {
-            var mc = new ModelConversation(ModelRuntime.Ollama, OllamaModels.Gemma3n_2eb);
+            var mc = new ModelConversation(ModelRuntime.Ollama, OllamaModels.Gemma3n_2eb_tools);
             var pdfbin = File.ReadAllBytes("..\\..\\..\\..\\data\\test.pdf");
             var pdftext = Documents.ConvertPdfToText("..\\..\\..\\..\\data\\test.pdf");
             Assert.True(pdftext.IsSuccess);

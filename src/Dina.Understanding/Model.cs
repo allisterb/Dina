@@ -1,20 +1,18 @@
 ﻿namespace Dina;
 
 
+using LLama.Native;
+using LLamaSharp.SemanticKernel;
+using LLamaSharp.SemanticKernel.ChatCompletion;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.Ollama;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
-using Microsoft.SemanticKernel.Agents;
-
 using OllamaSharp;
-using LLama.Native;
-using LLamaSharp.SemanticKernel;
-using LLamaSharp.SemanticKernel.ChatCompletion;
-
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -27,7 +25,7 @@ public enum ModelRuntime
     Ollama,
     LlamaCpp,
     OpenApiCompat
-}  
+}
 
 public class ModelConversation : Runtime
 {
@@ -54,10 +52,10 @@ public class ModelConversation : Runtime
                 Temperature = 0.1f,
                 ModelId = model,
                 FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(),
-        
+
                 ExtensionData = new Dictionary<string, object>()
                 {
-                    
+
                 }
             };
 #pragma warning restore SKEXP0070 
@@ -66,7 +64,7 @@ public class ModelConversation : Runtime
             Info("Using Ollama API at {0} with model {1}", llamaPath, model);
         }
         else if (runtimeType == ModelRuntime.LlamaCpp)
-        { 
+        {
             NativeLibraryConfig.LLama
                 .WithAutoFallback(true)
                 .WithCuda(false)
@@ -80,7 +78,7 @@ public class ModelConversation : Runtime
                 FlashAttention = true,
                 GpuLayerCount = 35 // How many layers to offload to GPU.
             };
-            
+
             LLama.LLamaWeights lm = LLama.LLamaWeights.LoadFromFile(parameters);
             var ex = new LLama.StatelessExecutor(lm, parameters, logger);
             promptExecutionSettings = new LLamaSharpPromptExecutionSettings()
@@ -103,8 +101,8 @@ public class ModelConversation : Runtime
 #pragma warning restore SKEXP0010 
 #pragma warning disable SKEXP0001
             client = chat.AsChatClient();
-#pragma warning restore SKEXP0001 
-            
+#pragma warning restore SKEXP0001
+
             promptExecutionSettings = new OpenAIPromptExecutionSettings()
             {
                 Temperature = 0.1f,
@@ -115,9 +113,17 @@ public class ModelConversation : Runtime
             Info("Using OpenAI compatible API at {0} with model {1}", llamaPath, model);
         }
         IKernelBuilder builder = Kernel.CreateBuilder();
-        builder.AddOllamaChatCompletion(model, new Uri(llamaPath));
-        //builder.Services.AddSingleton(chat);
+        builder.Services.ConfigureHttpClientDefaults(
+            options =>
+            {
+                options.AddHttpMessageHandler<MessageHandler1>();
+
+            });
+        //builder.AddOllamaChatCompletion(model, new Uri(llamaPath));
+        builder.Services.AddSingleton(chat);
         //builder.Plugins.AddFromType<TestFunctions>("Time");
+
+
         kernel = builder.Build();
         if (systemPrompts != null)
         {
@@ -125,7 +131,7 @@ public class ModelConversation : Runtime
             {
                 messages.AddSystemMessage(systemPrompt);
             }
-        }   
+        }
     }
     #endregion
 
@@ -149,18 +155,23 @@ public class ModelConversation : Runtime
         messages.AddAssistantMessage(sb.ToString());
     }
 
-    public async IAsyncEnumerable<StreamingChatMessageContent> Prompt(string prompt, byte[]? imageData, string imageMimeType = "image/jpeg") 
+    public async IAsyncEnumerable<StreamingChatMessageContent> Prompt(string prompt, byte[]? imageData, string imageMimeType = "image/jpeg")
     {
         messages.AddUserMessage(new ChatMessageContentItemCollection {
             new Microsoft.SemanticKernel.TextContent(prompt),
             new ImageContent(imageData, imageMimeType),
-                
+
         });
+        StringBuilder sb = new StringBuilder();
         await foreach (var m in chat.GetStreamingChatMessageContentsAsync(messages, promptExecutionSettings, kernel))
         {
-            if (m.InnerContent is not null && !string.IsNullOrEmpty(m.Content)) messages.Add((ChatMessageContent) m.InnerContent);    
-            yield return m;
+            if (m.Content is not null && !string.IsNullOrEmpty(m.Content))
+            {
+                sb.Append(m.Content);
+                yield return m;
+            }
         }
+        messages.AddAssistantMessage(sb.ToString());
     }
 
     public async Task CallFunction()
@@ -187,7 +198,8 @@ public class ModelConversation : Runtime
         {
             Instructions = """
                    Answer questions about different locations.
-                   For France, use the time format: HH:MM. HH goes from 00 to 23 hours, MM goes from 00 to 59 minutes.
+                   For France, use the time format: HH:MM.
+                   HH goes from 00 to 23 hours, MM goes from 00 to 59 minutes
                    """,
             Name = "Location Agent",
             Kernel = kernel,
@@ -195,13 +207,13 @@ public class ModelConversation : Runtime
             // 👇🏼 Allows the model to decide whether to call the function
             Arguments = new KernelArguments(new OllamaPromptExecutionSettings
             {
-                FunctionChoiceBehavior = FunctionChoiceBehavior.Auto([c], autoInvoke:true),
-                
+                FunctionChoiceBehavior = FunctionChoiceBehavior.Required([c], autoInvoke: true),
+
             }
                 )
         };
-        
-        
+
+
         //agent.Kernel.Plugins.Add(plugin);
         /*
         //j2
@@ -220,7 +232,7 @@ public class ModelConversation : Runtime
 [
     new ChatMessageContent(AuthorRole.User, "What time is it in Illzach, France?")
 ];
-        
+
         /*
         //messages.AddUserMessage("What time is it in Illzach, France?");
         var response = await chat.GetChatMessageContentAsync("What time is it in Illzach, France?", new OllamaPromptExecutionSettings()
@@ -233,17 +245,14 @@ public class ModelConversation : Runtime
         }
         */
 
-        await foreach (var m in agent.InvokeAsync(_chat, options:new AgentInvokeOptions() { KernelArguments = new KernelArguments(new OllamaPromptExecutionSettings
-        {
-            
-            FunctionChoiceBehavior = FunctionChoiceBehavior.Required(),
+        
 
-        })}))
-       
+        await foreach (var m in agent.InvokeAsync(_chat))
+
         {
-           Console.WriteLine(m.Message.ToString()); 
+            Console.WriteLine(m.Message.Content);
+            _chat.Add(m);   
         }
-
     }
 
     public static void Test2()
@@ -265,7 +274,7 @@ public class ModelConversation : Runtime
     public Kernel kernel = new Kernel();
 
     public IChatClient client;
-    
+
     public IChatCompletionService chat;
 
     public ChatHistory messages = new ChatHistory();
@@ -284,4 +293,38 @@ public class OllamaModels
     public const string Nomic_Embed_Text = "nomic-embed-text";
     #endregion
 
+}
+
+public class MessageHandler1 : DelegatingHandler
+{
+    protected async override Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        //Debug.WriteLine("Process request");
+        // Call the inner handler.
+        var response = await base.SendAsync(request, cancellationToken);
+        //Debug.WriteLine("Process response");
+        return response;
+    }
+}
+
+public class Rootobject
+{
+    public Tool_Calls[] tool_calls { get; set; }
+}
+
+public class Tool_Calls
+{
+    public Function function { get; set; }
+}
+
+public class Function
+{
+    public string name { get; set; }
+    public Arguments arguments { get; set; }
+}
+
+public class Arguments
+{
+    public string city { get; set; }
 }
