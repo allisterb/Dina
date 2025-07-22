@@ -88,7 +88,9 @@ namespace Dina
                 RuntimeInitialized = true;
             }
         }
-       
+
+        public static void Initialize(string toolname, string logname, bool debug) => Initialize(toolname, logname, debug, NullLoggerFactory.Instance, NullLoggerProvider.Instance);
+        
         [DebuggerStepThrough]
         public static void Info(string messageTemplate, params object[] args) => logger.LogInformation(messageTemplate, args);
 

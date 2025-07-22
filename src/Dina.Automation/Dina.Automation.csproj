@@ -10,4 +10,8 @@
     <PackageReference Include="MailKit" Version="4.13.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Dina.Base\Dina.Base.csproj" />
+  </ItemGroup>
+
 </Project>

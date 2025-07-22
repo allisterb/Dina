@@ -1,9 +1,7 @@
 ﻿namespace Dina;
 
-using DocumentFormat.OpenXml.Wordprocessing;
-using LLama.Native;
-using LLamaSharp.SemanticKernel;
-using LLamaSharp.SemanticKernel.ChatCompletion;
+using System.Text;
+
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -13,9 +11,9 @@ using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.Ollama;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using OllamaSharp;
-using System.ComponentModel;
-using System.Runtime.InteropServices;
-using System.Text;
+using LLama.Native;
+using LLamaSharp.SemanticKernel;
+using LLamaSharp.SemanticKernel.ChatCompletion;
 
 public enum ModelRuntime
 {
@@ -24,7 +22,7 @@ public enum ModelRuntime
     OpenApiCompat
 }
 
-public class OllamaModels
+public static class OllamaModels
 {
     #region Constants
     public const string Gemma3_4b_it_q4_K_M = "gemma3:4b-it-q4_K_M";
@@ -56,6 +54,7 @@ public class ModelConversation : Runtime
             }
             client = _client;
             chat = _client.AsChatCompletionService(kernel.Services);
+#pragma warning restore SKEXP0070, SKEXP0001 
             promptExecutionSettings = new OllamaPromptExecutionSettings()
             {
                 Temperature = 0.1f,
@@ -63,7 +62,7 @@ public class ModelConversation : Runtime
                 FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: true),
                 ExtensionData = new Dictionary<string, object>()
             };
-#pragma warning restore SKEXP0070, SKEXP0001 
+
             Info("Using Ollama API at {0} with model {1}", runtimePath, model);
         }
         else if (runtimeType == ModelRuntime.LlamaCpp)
@@ -92,20 +91,15 @@ public class ModelConversation : Runtime
                 ExtensionData = new Dictionary<string, object>()
             };
             chat = new LLamaSharpChatCompletion(ex);
-#pragma warning disable SKEXP0001 
+#pragma warning disable SKEXP0001,SKEXP0010 
             client = chat.AsChatClient();
-#pragma warning restore SKEXP0001 
             Info("Using llama.cpp embedded library at {0} with model {1}", runtimePath, model);
         }
         else
         {
-#pragma warning disable SKEXP0010 
-            chat = new OpenAIChatCompletionService(model, new Uri(runtimePath), loggerFactory: loggerFactory);
-#pragma warning restore SKEXP0010 
-#pragma warning disable SKEXP0001
+            chat = new OpenAIChatCompletionService(model, new Uri(runtimePath), loggerFactory: loggerFactory); 
             client = chat.AsChatClient();
-#pragma warning restore SKEXP0001
-
+#pragma warning restore SKEXP0001, SKEXP0010
             promptExecutionSettings = new OpenAIPromptExecutionSettings()
             {
                 Temperature = 0.1f,
@@ -122,7 +116,10 @@ public class ModelConversation : Runtime
                 .SetMinimumLevel(LogLevel.Debug)
                 .AddProvider(loggerProvider)
             );
-        builder.Services.AddChatClient(client).UseFunctionInvocation(loggerFactory);
+        builder.Services
+            .AddChatClient(client)
+            .UseFunctionInvocation(loggerFactory)
+            .UseLogging(loggerFactory);
         kernel = builder.Build();
         if (systemPrompts != null)
         {
@@ -131,6 +128,7 @@ public class ModelConversation : Runtime
                 messages.AddSystemMessage(systemPrompt);
             }
         }
+        
     }
     #endregion
 
@@ -255,8 +253,10 @@ public class AgentConversation : ModelConversation
         }
            
     }
+
+    #region Fields
     protected ChatCompletionAgent agent;
 
     protected AgentInvokeOptions options;
-    
+    #endregion
 }

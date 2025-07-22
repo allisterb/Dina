@@ -55,6 +55,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReadLine", "..\ext\ReadLine
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dina.Automation", "Dina.Automation\Dina.Automation.csproj", "{F5A3308E-B621-4415-8C95-285836639ACA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dina.Tests.Automation", "..\tests\Dina.Tests.Automation\Dina.Tests.Automation.csproj", "{14C2B17F-F851-4352-85E9-155588AF997A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -133,6 +135,10 @@ Global
 		{F5A3308E-B621-4415-8C95-285836639ACA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F5A3308E-B621-4415-8C95-285836639ACA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F5A3308E-B621-4415-8C95-285836639ACA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{14C2B17F-F851-4352-85E9-155588AF997A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{14C2B17F-F851-4352-85E9-155588AF997A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{14C2B17F-F851-4352-85E9-155588AF997A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{14C2B17F-F851-4352-85E9-155588AF997A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -157,6 +163,7 @@ Global
 		{D3462183-1CCB-4385-AD00-C7CED0AF4C8B} = {1C137942-1894-4418-A482-41BEACFE0631}
 		{28D8A7D4-8225-3050-3A6E-E6165A3CCE1D} = {330E7B6D-C898-445D-BFC1-21F52D8A04AE}
 		{F5A3308E-B621-4415-8C95-285836639ACA} = {C8D9803A-994B-4D34-AFB5-099398074E9C}
+		{14C2B17F-F851-4352-85E9-155588AF997A} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {84D029BC-6506-4F9B-BE98-6BCD8566C01C}

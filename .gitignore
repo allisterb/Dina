@@ -426,3 +426,4 @@ bin/**/*
 **/wwwroot/Scripts/**/*
 **/wwwroot/Content/**/*
 /src/python
+**/testappsettings.json
