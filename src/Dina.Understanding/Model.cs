@@ -3,6 +3,7 @@
 using System.Text;
 
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.VectorData;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
@@ -10,10 +11,13 @@ using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.Ollama;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
+using Microsoft.SemanticKernel.Connectors.InMemory;
 using OllamaSharp;
 using LLama.Native;
 using LLamaSharp.SemanticKernel;
 using LLamaSharp.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel.Embeddings;
+using LLamaSharp.SemanticKernel.TextEmbedding;
 
 public enum ModelRuntime
 {
@@ -30,6 +34,7 @@ public static class OllamaModels
     public const string Gemma3n_2eb_tools = "gemma3n:e2b_tools_test";
     public const string Gemma3_4b = "gemma3:4b";
     public const string Nomic_Embed_Text = "nomic-embed-text";
+    public const string All_MiniLm = "all-minilm";
     #endregion
 
 }
@@ -42,6 +47,12 @@ public class ModelConversation : Runtime
         this.runtimeType = runtimeType;
         this.runtimePath = runtimePath;
         this.model = model;
+        IKernelBuilder builder = Kernel.CreateBuilder();
+        builder.Services.AddLogging(builder =>
+            builder
+                .SetMinimumLevel(LogLevel.Debug)
+                .AddProvider(loggerProvider)
+            );
         if (runtimeType == ModelRuntime.Ollama)
         {
             var endpoint = new Uri(runtimePath);
@@ -54,6 +65,8 @@ public class ModelConversation : Runtime
             }
             client = _client;
             chat = _client.AsChatCompletionService(kernel.Services);
+            builder.AddOllamaEmbeddingGenerator(new OllamaApiClient(endpoint, OllamaModels.All_MiniLm));
+            //embeddingService = _client.AsEmbeddingGenerationService(kernel.Services);   
 #pragma warning restore SKEXP0070, SKEXP0001 
             promptExecutionSettings = new OllamaPromptExecutionSettings()
             {
@@ -90,6 +103,7 @@ public class ModelConversation : Runtime
                 FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: true),
                 ExtensionData = new Dictionary<string, object>()
             };
+            //embeddingService = //new LLamaSharpEmbeddingGenerationService(ex, parameters, loggerFactory);
             chat = new LLamaSharpChatCompletion(ex);
 #pragma warning disable SKEXP0001,SKEXP0010 
             client = chat.AsChatClient();
@@ -109,16 +123,15 @@ public class ModelConversation : Runtime
             };
             Info("Using OpenAI compatible API at {0} with model {1}", runtimePath, model);
         }
-        
-        IKernelBuilder builder = Kernel.CreateBuilder();
-        builder.Services.AddLogging(builder =>
-            builder
-                .SetMinimumLevel(LogLevel.Debug)
-                .AddProvider(loggerProvider)
-            );
+              
         builder.Services
+            .AddInMemoryVectorStore(new InMemoryVectorStoreOptions()
+            {
+                EmbeddingGenerator = ((IEmbeddingGenerator<string, Embedding<float>>) client)
+            })
             .AddChatClient(client)
             .UseFunctionInvocation(loggerFactory)
+            
             .UseLogging(loggerFactory);
         kernel = builder.Build();
         if (systemPrompts != null)
@@ -127,12 +140,11 @@ public class ModelConversation : Runtime
             {
                 messages.AddSystemMessage(systemPrompt);
             }
-        }
-        
+        }  
     }
     #endregion
 
-    #region Methods
+    #region Methods and Properties
 
     public ModelConversation AddChatPlugin<T>(string pluginName)
     {
@@ -194,6 +206,8 @@ public class ModelConversation : Runtime
     {
         return new AgentConversation(this.runtimeType, this.model, instructions, name, this.runtimePath);
     }   
+
+    public VectorStore VectorStore => kernel.Services.GetRequiredService<VectorStore>();    
     #endregion
 
     #region Fields
@@ -213,50 +227,5 @@ public class ModelConversation : Runtime
     public ChatHistory messages = new ChatHistory();
 
     public PromptExecutionSettings promptExecutionSettings;
-    #endregion
-}
-
-public class AgentConversation : ModelConversation
-{
-    public AgentConversation(ModelRuntime runtimeType, string model, string instructions, string name = "Default Agent", string runtimePath = "http://localhost:11434", string[]? systemPrompts = null) 
-                : base(runtimeType, model, runtimePath, systemPrompts)
-    {
-        agent = new ChatCompletionAgent()
-        {
-            Instructions = instructions,
-            Name = name,
-            Kernel = kernel,
-            LoggerFactory = loggerFactory,
-            Arguments = new KernelArguments(promptExecutionSettings),
-        };
-
-        options = new AgentInvokeOptions()
-        {
-            OnIntermediateMessage = (message) =>
-            {
-                if (message.Content is not null && !string.IsNullOrEmpty(message.Content))
-                {
-                    Info(message.ToString());   
-                }
-                return Task.CompletedTask;
-            },  
-        };  
-    }
-
-    public async new IAsyncEnumerable<AgentResponseItem<ChatMessageContent>> Prompt(string prompt, params object[] args)
-    {
-        messages.AddUserMessage(string.Format(prompt, args));
-        await foreach(var m in agent.InvokeAsync(messages, options: options))
-        {
-            messages.Add(m);    
-            yield return m;
-        }
-           
-    }
-
-    #region Fields
-    protected ChatCompletionAgent agent;
-
-    protected AgentInvokeOptions options;
     #endregion
 }

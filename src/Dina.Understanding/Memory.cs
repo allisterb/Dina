@@ -2,9 +2,13 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.VectorData;
 using Microsoft.KernelMemory;
 using Microsoft.KernelMemory.AI;
 using Microsoft.KernelMemory.AI.Ollama;
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.Connectors.InMemory;
+using Microsoft.SemanticKernel.Connectors.Ollama;
 
 using static Result;
 
@@ -14,7 +18,7 @@ public class Memory : Runtime
     {
         this.modelRuntime = modelRuntime;
         var builder = new KernelMemoryBuilder();
-        var ollamaconfig = new OllamaConfig()
+        ollamaconfig = new OllamaConfig()
         {
             Endpoint = llamapath,
             TextModel = new OllamaModelConfig() { 
@@ -24,14 +28,17 @@ public class Memory : Runtime
                 ModelName = embeddingmodel,
             }
         };  
+     
         builder.Services.AddLogging(configure => 
             configure
             .AddProvider(loggerProvider)
             .SetMinimumLevel(LogLevel.Debug));
+        
         memory =
             builder
             .WithOllamaTextGeneration(ollamaconfig, new CL100KTokenizer())   
             .WithOllamaTextEmbeddingGeneration(ollamaconfig, new CL100KTokenizer())
+            
             .Build<MemoryServerless>();
     }
 
@@ -47,5 +54,6 @@ public class Memory : Runtime
     #region Fields
     ModelRuntime modelRuntime;
     IKernelMemory memory;
+    OllamaConfig ollamaconfig;  
     #endregion
 }

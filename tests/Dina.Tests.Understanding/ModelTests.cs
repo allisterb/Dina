@@ -1,3 +1,5 @@
+using OllamaSharp;
+using OpenAI.Assistants;
 using Serilog;
 using Serilog.Extensions.Logging;
 
@@ -68,6 +70,14 @@ namespace Dina.Tests.Understanding
                 Assert.NotNull(response);
                 Console.WriteLine(response);
             }   
+        }
+        [Fact]
+        public async Task CanCallAgent()
+        {
+            var ac = new AgentConversation(ModelRuntime.Ollama, OllamaModels.Gemma3n_2eb_tools,
+               "You are a friendly assistant that summarizes key points and sentiments from customer reviews."
+               );
+            await ac.TestAgent();
         }
     }
 }
