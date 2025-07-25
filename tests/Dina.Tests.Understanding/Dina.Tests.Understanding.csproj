@@ -22,12 +22,20 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Dina.Automation\Dina.Automation.csproj" />
     <ProjectReference Include="..\..\src\Dina.Understanding\Dina.Understanding.csproj" />
     <ProjectReference Include="..\..\src\Dina.Vision\Dina.Vision.csproj" />
+    <ProjectReference Include="..\Dina.Tests.Automation\Dina.Tests.Automation.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="testappsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

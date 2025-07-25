@@ -7,11 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MailKit" Version="4.13.0" />
+    <ProjectReference Include="..\Dina.Base\Dina.Base.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Dina.Base\Dina.Base.csproj" />
+    <PackageReference Include="MailKit" Version="4.13.0" />
+    <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="1.60.0" />
   </ItemGroup>
 
 </Project>

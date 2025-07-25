@@ -123,15 +123,15 @@ public class ModelConversation : Runtime
             };
             Info("Using OpenAI compatible API at {0} with model {1}", runtimePath, model);
         }
-              
+
         builder.Services
             .AddInMemoryVectorStore(new InMemoryVectorStoreOptions()
             {
-                EmbeddingGenerator = ((IEmbeddingGenerator<string, Embedding<float>>) client)
+                EmbeddingGenerator = ((IEmbeddingGenerator<string, Embedding<float>>)client)
             })
+            .AddSingleton(logger)
             .AddChatClient(client)
             .UseFunctionInvocation(loggerFactory)
-            
             .UseLogging(loggerFactory);
         kernel = builder.Build();
         if (systemPrompts != null)
@@ -146,12 +146,19 @@ public class ModelConversation : Runtime
 
     #region Methods and Properties
 
-    public ModelConversation AddChatPlugin<T>(string pluginName)
+    public ModelConversation AddPlugin<T>(string pluginName)
     {
         kernel.Plugins.AddFromType<T>(pluginName);
         return this;
     }
 
+    public ModelConversation AddPlugin<T>(T obj, string pluginName)
+    {
+#pragma warning disable SKEXP0120 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+        kernel.Plugins.AddFromObject<T>(obj, jsonSerializerOptions: new System.Text.Json.JsonSerializerOptions(), pluginName: pluginName);
+#pragma warning restore SKEXP0120 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+        return this;
+    }
     public async IAsyncEnumerable<StreamingChatMessageContent> Prompt(string prompt, params object[] args)
     {
         var messageItems = new ChatMessageContentItemCollection()
@@ -189,23 +196,6 @@ public class ModelConversation : Runtime
         }
         messages.AddAssistantMessage(sb.ToString());
     }
-
-    public ChatCompletionAgent CreateAgent(string instructions, string name = "Default Agent")
-    {
-        return new ChatCompletionAgent()
-        {
-            Instructions = instructions,
-            Name = name,
-            Kernel = kernel,
-            LoggerFactory = loggerFactory,
-            Arguments = new KernelArguments(promptExecutionSettings)
-        };
-    }   
-
-    public AgentConversation CreateAgentConversation(string instructions, string name = "Default Agent", KernelArguments? arguments = null)
-    {
-        return new AgentConversation(this.runtimeType, this.model, instructions, name, this.runtimePath);
-    }   
 
     public VectorStore VectorStore => kernel.Services.GetRequiredService<VectorStore>();    
     #endregion
