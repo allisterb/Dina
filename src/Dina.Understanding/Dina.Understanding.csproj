@@ -19,12 +19,16 @@
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.Ollama" Version="1.60.0-alpha" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI" Version="1.60.0" />
     <PackageReference Include="Microsoft.SemanticKernel.Core" Version="1.60.0" />
-    <PackageReference Include="OllamaSharp" Version="5.2.10" />
+    <PackageReference Include="OllamaSharp" Version="5.3.3" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="9.0.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Dina.Base\Dina.Base.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Processes\" />
   </ItemGroup>
 
 </Project>

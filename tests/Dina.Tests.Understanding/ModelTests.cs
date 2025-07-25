@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using OllamaSharp;
 using OpenAI.Assistants;
 using Serilog;
@@ -11,6 +12,7 @@ namespace Dina.Tests.Understanding
         {
             var logger = new LoggerConfiguration()
                  .Enrich.FromLogContext()
+                 .MinimumLevel.Verbose()
                  .WriteTo.Console()
                  .WriteTo.File(Path.Combine(Runtime.AssemblyLocation, "Dina.log"))
                  .CreateLogger();
@@ -18,6 +20,10 @@ namespace Dina.Tests.Understanding
             var lp = new SerilogLoggerProvider(logger, false);
             Runtime.Initialize("Dina.Understanding", "Tests", false, lf, lp);
             Documents.MuPdfPath = "C:\\Projects\\Dina\\bin";
+            config = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("testappsettings.json", optional: false, reloadOnChange: true)
+                .Build();
         }
 
         [Fact]
@@ -56,6 +62,7 @@ namespace Dina.Tests.Understanding
 
         }
 
+        
         [Fact]
         public async Task CanCallKernelFunction()
         {
@@ -64,20 +71,33 @@ namespace Dina.Tests.Understanding
                 "For France, use the time format: HH:MM.\r\n HH goes from 00 to 23 hours, MM goes from 00 to 59 minutes\r\n",
                 "Location Agent"
                 );
-            ac.AddChatPlugin<TestFunctions>("Time");
+            ac.AddPlugin<TestFunctions>("Time");
             await foreach (var response in ac.Prompt("What is the time in Paris, France?"))
             {
                 Assert.NotNull(response);
                 Console.WriteLine(response);
             }   
         }
+        
         [Fact]
         public async Task CanCallAgent()
         {
             var ac = new AgentConversation(ModelRuntime.Ollama, OllamaModels.Gemma3n_2eb_tools,
-               "You are a friendly assistant that summarizes key points and sentiments from customer reviews."
-               );
+               "You are an assistant that summarizes key points and sentiments from customer reviews.");
             await ac.TestAgent();
         }
+        
+        [Fact]
+        public async Task CanSendEmail()
+        {
+            var user = config["Email:User"] ?? throw new ArgumentNullException("Email:User");
+            var password = config["Email:Password"] ?? throw new ArgumentNullException("Email:Password"); ;
+            var displayName = config["Email:DisplayName"] ?? throw new ArgumentNullException("Email:DisplayName");
+            var ms = new MailPlugin(user, password, displayName, "smtp.gmail.com", "imap.gmail.com");
+            var ac = new AgentConversation(ModelRuntime.Ollama, OllamaModels.Gemma3n_2eb_tools, "You are an assistant that helps people.")
+                .AddPlugin(ms, "Email");
+        }
+
+        static IConfigurationRoot config;
     }
 }

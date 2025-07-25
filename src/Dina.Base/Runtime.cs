@@ -84,6 +84,7 @@ namespace Dina
                 LogName = logname;
                 DebugEnabled = debug;
                 loggerFactory = lf;
+                loggerProvider = lp;
                 logger = lf.CreateLogger(toolname);
                 RuntimeInitialized = true;
             }

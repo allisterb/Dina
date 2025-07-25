@@ -17,13 +17,23 @@ namespace Dina.Tests.Automation
             password = config["Email:Password"] ?? throw new ArgumentNullException("Email:Password"); ;
             displayName = config["Email:DisplayName"] ?? throw new ArgumentNullException("Email:DisplayName"); 
         }
+        
         [Fact]
         public async Task CanSendAndReceiveEmail()
         {
             var mailSession = new MailSession(user, password, displayName, "smtp.gmail.com", "imap.gmail.com");
-            await mailSession.SendMailAsync("***REMOVED***", "Test Email", "test");
+            await mailSession.SendMailAsync(user, "Test Email", "test");
         }
-       
+
+        [Fact]
+        public async Task CanSearchEmail()
+        {
+            var mailSession = new MailSession(user, password, displayName, "smtp.gmail.com", "imap.gmail.com");
+            var r = await mailSession.SearchInboxByFromAsync("Allister Beharry");
+            //await mailSession.SendMailAsync("***REMOVED***", "Test Email", "test");
+        }
+
+
         static string user = "testuser";    
         static string password = "testpassword";
         static string displayName = "Test User";    

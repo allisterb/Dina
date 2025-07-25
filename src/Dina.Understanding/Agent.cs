@@ -13,50 +13,52 @@ using System.ClientModel;
 
 public class AgentConversation : ModelConversation
 {
-    public AgentConversation(ModelRuntime runtimeType, string model, string instructions, string name = "Default Agent", string runtimePath = "http://localhost:11434", string[]? systemPrompts = null)
+    public AgentConversation(ModelRuntime runtimeType, string model, string instructions, string name = "Default Agent", bool immutableKernel = false, string runtimePath = "http://localhost:11434", string[]? systemPrompts = null)
                 : base(runtimeType, model, runtimePath, systemPrompts)
     {
-       agent = new ChatCompletionAgent()
+        agent = new ChatCompletionAgent()
         {
-            Instructions = instructions,
-            Name = name,
-            Kernel = kernel,
-            LoggerFactory = loggerFactory,
+           Instructions = instructions,
+           Name = name,
+           Kernel = kernel,
+           LoggerFactory = loggerFactory,
 #pragma warning disable SKEXP0130, SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-           Arguments = new(new PromptExecutionSettings { 
-               FunctionChoiceBehavior = FunctionChoiceBehavior.Required(autoInvoke: true, 
+           Arguments = new(new PromptExecutionSettings
+           {
+               FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: true,
                 options: new FunctionChoiceBehaviorOptions()
                 {
-                    RetainArgumentTypes = true
-                }) 
+                    RetainArgumentTypes = true,
+                    AllowStrictSchemaAdherence = true,
+                })
            }),
-            UseImmutableKernel = true
+           UseImmutableKernel = immutableKernel
         };
-#pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-#pragma warning restore SKEXP0130 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+#pragma warning restore SKEXP0130, SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+    }
 
-        options = new AgentInvokeOptions()
-        {
-            OnIntermediateMessage = (message) =>
-            {
-                if (message.Content is not null && !string.IsNullOrEmpty(message.Content))
-                {
-                    Info(message.ToString());
-                }
-                return Task.CompletedTask;
-            },
-        };
+    public new AgentConversation AddPlugin<T>(string pluginName)
+    {
+        kernel.Plugins.AddFromType<T>(pluginName);
+        return this;
+    }
+
+    public new AgentConversation AddPlugin<T>(T plugin, string pluginName)
+    {
+#pragma warning disable SKEXP0120 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+        kernel.Plugins.AddFromObject<T>(plugin, jsonSerializerOptions: new System.Text.Json.JsonSerializerOptions(), pluginName: pluginName);
+#pragma warning restore SKEXP0120 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+        return this;
     }
 
     public async new IAsyncEnumerable<AgentResponseItem<ChatMessageContent>> Prompt(string prompt, params object[] args)
     {
         messages.AddUserMessage(string.Format(prompt, args));
-        await foreach (var m in agent.InvokeAsync(messages, options: options))
+        await foreach (var m in agent.InvokeAsync(messages))
         {
             messages.Add(m);
             yield return m;
         }
-
     }
 
     public async Task TestAgent()
@@ -124,7 +126,5 @@ public class AgentConversation : ModelConversation
     }
     #region Fields
     protected ChatCompletionAgent agent;
-
-    protected AgentInvokeOptions options;
     #endregion
 }

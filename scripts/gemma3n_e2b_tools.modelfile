@@ -1,6 +1,7 @@
 # Original by Illia Filipas: https://github.com/IllFil/gemma3-ollama-tools/blob/main/gemma3-tools-modelfile
 
-FROM gemma3n:e2b
+FROM gemma3n:e4b
+
 TEMPLATE """
 {{- if .Messages }}
   {{- if or .System .Tools }}
@@ -76,4 +77,5 @@ _No markdown ``` fences, no extra text and **no line break before  `tool_calls` 
 <start_of_turn>model
 {{ .Response }}{{ if .Response }}<end_of_turn>{{ end }}
 {{- end }}"""
-PARAMETER temperature 0.1
+
+PARAMETER temperature 1
