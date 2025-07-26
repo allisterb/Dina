@@ -23,7 +23,6 @@ If you decide to call any functions you MUST provide all function call invocatio
 	{"function": {"name": <function-name>, "arguments": <args-json-object>}}
 ]
 }
-
 When you call a function, your response MUST start EXACTLY with:
 {
 "tool_calls": [
@@ -34,6 +33,7 @@ NO ```json prefix, no markdown ```fences, no extra text and no line break before
 
 You SHOULD NOT include any other text in the response if you call functions. If you call functions then use ONLY the function response to answer queries or request further function calls.
 
+When you do not call any functions, you MUST respond with ONLY a text message that answers the user query without function response starting with '{'.
 
 {{- end }}
 <end_of_turn>

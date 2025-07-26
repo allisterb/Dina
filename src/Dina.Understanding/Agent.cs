@@ -69,7 +69,7 @@ public class AgentConversation : ModelConversation
         await foreach (var m in agent.InvokeAsync(messages, agentThread))
         {
             messages.Add(m);
-            if (hasThreads && agentThreads.Peek() != m.Thread)
+            if (!hasThreads || (hasThreads && agentThreads.Peek() != m.Thread))
             {
                 agentThreads.Push(m.Thread);    
             }
