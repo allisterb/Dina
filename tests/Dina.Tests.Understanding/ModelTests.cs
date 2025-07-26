@@ -117,10 +117,16 @@ namespace Dina.Tests.Understanding
             var ms = new MailPlugin(user, password, displayName, "smtp.gmail.com", "imap.gmail.com");
             var ac = new AgentConversation(ModelRuntime.Ollama, OllamaModels.Gemma3n_2eb_tools,
                 "You are an assistant that helps people.", plugins: (ms, "Email"));
-            await foreach(var message in ac.Prompt("Ask the user for an email address to send a test email to and then send a message with the subject of 'Test Message' and body 'Hello World'. "))
+            await foreach(var message in ac.Prompt(
+                $"You will complete the following steps:\n * First ask the user for a number.\n* Then ask the user for an email address.\n *Then send an email to that address with the subject of 'Test Message' and body containing the number entered in the first step. "))
             { 
                 Assert.NotNull(message);
                 Console.WriteLine(message); 
+            }
+            await foreach (var message in ac.Prompt("My number is 42.", me))
+            {
+                Assert.NotNull(message);
+                Console.WriteLine(message);
             }
             await foreach (var message in ac.Prompt("My email is {0}", me))
             {

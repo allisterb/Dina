@@ -63,12 +63,10 @@ public class AgentConversation : ModelConversation
 
     public async new IAsyncEnumerable<AgentResponseItem<ChatMessageContent>> Prompt(string prompt, params object[] args)
     {
-        //messages.AddUserMessage(string.Format(prompt, args));
         AgentThread? agentThread = null;
         bool hasThreads = agentThreads.TryPeek(out agentThread);
         await foreach (var m in agent.InvokeAsync(string.Format(prompt, args), agentThread))
         {
-            messages.Add(m);
             if (!hasThreads || (hasThreads && agentThreads.Peek() != m.Thread))
             {
                 agentThreads.Push(m.Thread);    
