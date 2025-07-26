@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 
+
 public class MailPlugin
 {
     private readonly MailSession _mailSession;
@@ -27,11 +28,10 @@ public class MailPlugin
         [Description("Recipient email address")] string to,
         [Description("Email subject")] string subject,
         [Description("Email body")] string body,
-        ILogger? logger = null)
+       ILogger? logger = null)
     {
         logger?.LogInformation("Sending email to {To} with subject '{Subject}'", to, subject);   
 
-        await _mailSession.SendMailAsync(to, subject, body);
     }
 
     [KernelFunction, Description("Get the most recent emails from the inbox")]

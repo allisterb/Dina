@@ -28,11 +28,10 @@ public class AgentConversation : ModelConversation
                FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: true,
                 options: new FunctionChoiceBehaviorOptions()
                 {
-                    RetainArgumentTypes = true,
-                    AllowStrictSchemaAdherence = true,
-                })
+                    RetainArgumentTypes = true
+                }) 
            }),
-           UseImmutableKernel = immutableKernel
+           UseImmutableKernel = false
         };
 #pragma warning restore SKEXP0130, SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
     }
@@ -43,10 +42,10 @@ public class AgentConversation : ModelConversation
         return this;
     }
 
-    public new AgentConversation AddPlugin<T>(T plugin, string pluginName)
+    public new AgentConversation AddPlugin<T>(T obj, string pluginName)
     {
 #pragma warning disable SKEXP0120 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-        kernel.Plugins.AddFromObject<T>(plugin, jsonSerializerOptions: new System.Text.Json.JsonSerializerOptions(), pluginName: pluginName);
+        kernel.Plugins.AddFromObject<T>(obj, jsonSerializerOptions: new System.Text.Json.JsonSerializerOptions(), pluginName: pluginName);
 #pragma warning restore SKEXP0120 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         return this;
     }
