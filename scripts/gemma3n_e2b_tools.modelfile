@@ -17,20 +17,23 @@ You may call one or more functions to assist with the user query. You are provid
 {{- end }}
 </tools>
 
-If you decide to invoke any functions you MUST provide all function calls invocations as objects  using the schema:
+If you decide to call any functions you MUST provide all function call invocations as objects using the schema:
 {
 "tool_calls": [
 	{"function": {"name": <function-name>, "arguments": <args-json-object>}}
 ]
 }
 
-**When you call a function, your response MUST start _exactly_ with:**
+When you call a function, your response MUST start EXACTLY with:
 {
 "tool_calls": [
 	{"function": {"name": "...", "arguments": { ... }}}
 ]
 }
-_No markdown ``` fences, no extra text and **no line break before  `tool_calls` **._
+NO ```json prefix, no markdown ```fences, no extra text and no line break before '{'.
+
+You SHOULD NOT include any other text in the response if you call functions. If you call functions then use ONLY the function response to answer queries or request further function calls.
+
 
 {{- end }}
 <end_of_turn>
@@ -78,4 +81,4 @@ _No markdown ``` fences, no extra text and **no line break before  `tool_calls` 
 {{ .Response }}{{ if .Response }}<end_of_turn>{{ end }}
 {{- end }}"""
 
-PARAMETER temperature 1
+PARAMETER temperature 0.1

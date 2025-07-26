@@ -107,6 +107,27 @@ namespace Dina.Tests.Understanding
             }
         }
 
+        [Fact]
+        public async Task AgentCanAskQuestions()
+        {
+            var user = config["Email:User"] ?? throw new ArgumentNullException("Email:User");
+            var password = config["Email:Password"] ?? throw new ArgumentNullException("Email:Password"); ;
+            var displayName = config["Email:DisplayName"] ?? throw new ArgumentNullException("Email:DisplayName");
+            var me = config["Email:ManagerEmail"] ?? throw new ArgumentNullException("Email:ManagerEmail");
+            var ms = new MailPlugin(user, password, displayName, "smtp.gmail.com", "imap.gmail.com");
+            var ac = new AgentConversation(ModelRuntime.Ollama, OllamaModels.Gemma3n_2eb_tools,
+                "You are an assistant that helps people.", plugins: (ms, "Email"));
+            await foreach(var message in ac.Prompt("Ask the user for an email address to send a test email to and then send a message with the subject of 'Test Message' and body 'Hello World'. "))
+            { 
+                Assert.NotNull(message);
+                Console.WriteLine(message); 
+            }
+            await foreach (var message in ac.Prompt("My email is {0}", me))
+            {
+                Assert.NotNull(message);
+                Console.WriteLine(message);
+            }
+        }
         static IConfigurationRoot config;
     }
 }

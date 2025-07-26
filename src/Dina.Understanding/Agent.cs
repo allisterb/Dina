@@ -13,7 +13,8 @@ using System.ClientModel;
 
 public class AgentConversation : ModelConversation
 {
-    public AgentConversation(ModelRuntime runtimeType, string model, string instructions, string name = "Default Agent", bool immutableKernel = false, string runtimePath = "http://localhost:11434", string[]? systemPrompts = null)
+    public AgentConversation(ModelRuntime runtimeType, string model, string instructions, string name = "Default Agent", bool immutableKernel = false, 
+        string runtimePath = "http://localhost:11434", string[]? systemPrompts = null, params (object, string)[] plugins)
                 : base(runtimeType, model, runtimePath, systemPrompts)
     {
         agent = new ChatCompletionAgent()
@@ -33,6 +34,7 @@ public class AgentConversation : ModelConversation
            }),
            UseImmutableKernel = immutableKernel
         };
+        AddPlugins(plugins);
 #pragma warning restore SKEXP0130, SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
     }
 
@@ -50,12 +52,27 @@ public class AgentConversation : ModelConversation
         return this;
     }
 
+    public AgentConversation AddPlugins(params (object, string)[] plugins)
+    {
+        foreach (var (plugin, pluginName) in plugins)
+        {
+            kernel.Plugins.AddFromObject(plugin, pluginName);
+        }
+        return this;
+    }
+
     public async new IAsyncEnumerable<AgentResponseItem<ChatMessageContent>> Prompt(string prompt, params object[] args)
     {
         messages.AddUserMessage(string.Format(prompt, args));
-        await foreach (var m in agent.InvokeAsync(messages))
+        AgentThread? agentThread = null;
+        bool hasThreads = agentThreads.TryPeek(out agentThread);
+        await foreach (var m in agent.InvokeAsync(messages, agentThread))
         {
             messages.Add(m);
+            if (hasThreads && agentThreads.Peek() != m.Thread)
+            {
+                agentThreads.Push(m.Thread);    
+            }
             yield return m;
         }
     }
@@ -125,5 +142,6 @@ public class AgentConversation : ModelConversation
     }
     #region Fields
     protected ChatCompletionAgent agent;
+    protected Stack<AgentThread> agentThreads = new Stack<AgentThread>();   
     #endregion
 }

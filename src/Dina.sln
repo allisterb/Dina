@@ -57,6 +57,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dina.Automation", "Dina.Aut
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dina.Tests.Automation", "..\tests\Dina.Tests.Automation\Dina.Tests.Automation.csproj", "{14C2B17F-F851-4352-85E9-155588AF997A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{08BC6FAC-9170-492D-ADE3-9D0713E3E54A}"
+	ProjectSection(SolutionItems) = preProject
+		..\scripts\gemma3n_e2b_tools.modelfile = ..\scripts\gemma3n_e2b_tools.modelfile
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
