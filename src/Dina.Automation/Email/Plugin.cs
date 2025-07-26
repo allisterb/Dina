@@ -28,9 +28,10 @@ public class MailPlugin
         [Description("Recipient email address")] string to,
         [Description("Email subject")] string subject,
         [Description("Email body")] string body,
-       ILogger? logger = null)
+        ILogger? logger = null)
     {
-        logger?.LogInformation("Sending email to {To} with subject '{Subject}'", to, subject);   
+        //logger?.LogInformation("Sending email to {To} with subject '{Subject}'", to, subject);   
+        await _mailSession.SendMailAsync(to, subject, body);
 
     }
 

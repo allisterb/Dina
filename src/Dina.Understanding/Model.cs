@@ -129,7 +129,6 @@ public class ModelConversation : Runtime
             {
                 EmbeddingGenerator = ((IEmbeddingGenerator<string, Embedding<float>>)client)
             })
-            .AddSingleton(logger)
             .AddChatClient(client)
             .UseFunctionInvocation(loggerFactory);
         kernel = builder.Build();

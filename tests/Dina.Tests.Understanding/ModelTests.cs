@@ -88,14 +88,23 @@ namespace Dina.Tests.Understanding
         }
         
         [Fact]
-        public async Task CanSendEmail()
+        public async Task AgentCanSendEmail()
         {
             var user = config["Email:User"] ?? throw new ArgumentNullException("Email:User");
             var password = config["Email:Password"] ?? throw new ArgumentNullException("Email:Password"); ;
             var displayName = config["Email:DisplayName"] ?? throw new ArgumentNullException("Email:DisplayName");
+            var me = config["Email:ManagerEmail"] ?? throw new ArgumentNullException("Email:ManagerEmail"); 
             var ms = new MailPlugin(user, password, displayName, "smtp.gmail.com", "imap.gmail.com");
-            var ac = new AgentConversation(ModelRuntime.Ollama, OllamaModels.Gemma3n_2eb_tools, "You are an assistant that helps people.")
+            var ac = new AgentConversation(ModelRuntime.Ollama, OllamaModels.Gemma3n_2eb_tools, 
+                "You are an assistant that helps people."
+            )
                 .AddPlugin(ms, "Email");
+            var p = ac.Prompt($"Send an email to {me} with  subject of 'Test Email' and body 'This is a test email.'");
+            await foreach (var response in p)
+            {
+                Assert.NotNull(response);
+                Console.WriteLine(response);
+            }
         }
 
         static IConfigurationRoot config;
