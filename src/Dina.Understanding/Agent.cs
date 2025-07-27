@@ -1,41 +1,36 @@
 ﻿namespace Dina;
 
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.VectorData;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.Connectors.InMemory;
-using Microsoft.SemanticKernel.Embeddings;
 using Microsoft.SemanticKernel.Functions;
-using OllamaSharp;
-using System.ClientModel;
 
 public class AgentConversation : ModelConversation
 {
-    public AgentConversation(ModelRuntime runtimeType, string model, string instructions, string name = "Default Agent", bool immutableKernel = false, 
+    public AgentConversation(ModelRuntime runtimeType, string model, string instructions, string name = "Default Agent", bool immutableKernel = false,
         string runtimePath = "http://localhost:11434", string[]? systemPrompts = null, params (object, string)[] plugins)
                 : base(runtimeType, model, runtimePath, systemPrompts)
     {
         agent = new ChatCompletionAgent()
         {
-           Instructions = instructions,
-           Name = name,
-           Kernel = kernel,
-           LoggerFactory = loggerFactory,
-#pragma warning disable SKEXP0130, SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-           Arguments = new(new PromptExecutionSettings
-           {
-               FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: true,
+            Instructions = instructions,
+            Name = name,
+            Kernel = kernel,
+            LoggerFactory = loggerFactory,
+#pragma warning disable SKEXP0130, SKEXP0001
+            Arguments = new(new PromptExecutionSettings
+            {
+                FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: true,
                 options: new FunctionChoiceBehaviorOptions()
                 {
                     RetainArgumentTypes = true
-                }) 
-           }),
-           UseImmutableKernel = immutableKernel
+                })
+            }),
+            UseImmutableKernel = immutableKernel
         };
         AddPlugins(plugins);
-#pragma warning restore SKEXP0130, SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+#pragma warning restore SKEXP0130, SKEXP0001
     }
 
     public new AgentConversation AddPlugin<T>(string pluginName)
