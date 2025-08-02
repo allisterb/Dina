@@ -24,6 +24,11 @@ namespace Dina.Tests.Understanding
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("testappsettings.json", optional: false, reloadOnChange: true)
                 .Build();
+            user = config["Email:User"] ?? throw new ArgumentNullException("Email:User");
+            password = config["Email:Password"] ?? throw new ArgumentNullException("Email:Password"); ;
+            displayName = config["Email:DisplayName"] ?? throw new ArgumentNullException("Email:DisplayName");
+            me = config["Email:ManagerEmail"] ?? throw new ArgumentNullException("Email:ManagerEmail");
+            ms = new MailPlugin(user, password, displayName, "smtp.gmail.com", "imap.gmail.com");
         }
 
         [Fact]
@@ -93,7 +98,7 @@ namespace Dina.Tests.Understanding
             var user = config["Email:User"] ?? throw new ArgumentNullException("Email:User");
             var password = config["Email:Password"] ?? throw new ArgumentNullException("Email:Password"); ;
             var displayName = config["Email:DisplayName"] ?? throw new ArgumentNullException("Email:DisplayName");
-            var me = config["Email:ManagerEmail"] ?? throw new ArgumentNullException("Email:ManagerEmail"); 
+            me = config["Email:ManagerEmail"] ?? throw new ArgumentNullException("Email:ManagerEmail"); 
             var ms = new MailPlugin(user, password, displayName, "smtp.gmail.com", "imap.gmail.com");
             var ac = new AgentConversation("You are an assistant that helps people.", "Email Agent");
             ac.AddPlugin(ms, "Email");
@@ -106,13 +111,21 @@ namespace Dina.Tests.Understanding
         }
 
         [Fact]
+        public async Task AgentCanSearchEmail()
+        {
+            var ac = new AgentConversation("You are an assistant that helps people.", "Email Agent");
+            ac.AddPlugin(ms, "Email");
+            var p = ac.Prompt($"Search for emails from {me}. If you find any then send an email to the sender with the subject reply and the body my reply to you.");
+            await foreach (var response in p)
+            {
+                Assert.NotNull(response);
+                Console.WriteLine(response.Message.ToString());
+            }
+        }
+        [Fact]
         public async Task AgentCanAskQuestions()
         {
-            var user = config["Email:User"] ?? throw new ArgumentNullException("Email:User");
-            var password = config["Email:Password"] ?? throw new ArgumentNullException("Email:Password"); ;
-            var displayName = config["Email:DisplayName"] ?? throw new ArgumentNullException("Email:DisplayName");
-            var me = config["Email:ManagerEmail"] ?? throw new ArgumentNullException("Email:ManagerEmail");
-            var ms = new MailPlugin(user, password, displayName, "smtp.gmail.com", "imap.gmail.com");
+          
             var ac = new AgentConversation("You are an assistant that helps people.", plugins: [(ms, "Email")]);
             await foreach(var message in ac.Prompt(
                 $"You will complete the following steps:\n * First ask the user for a number.\n* Then ask the user for an email address.\n *Then send an email to that address with the subject of 'Test Message' and body containing the number entered in the first step. "))
@@ -131,6 +144,9 @@ namespace Dina.Tests.Understanding
                 Console.WriteLine(message);
             }
         }
+
         static IConfigurationRoot config;
+        static string user, password, displayName, me;
+        static MailPlugin ms;
     }
 }

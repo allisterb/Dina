@@ -59,6 +59,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dina.Tests.Automation", "..
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{08BC6FAC-9170-492D-ADE3-9D0713E3E54A}"
 	ProjectSection(SolutionItems) = preProject
+		..\scripts\finetune_gemma3n_docvqa.py = ..\scripts\finetune_gemma3n_docvqa.py
 		..\scripts\gemma3n_e2b_tools.modelfile = ..\scripts\gemma3n_e2b_tools.modelfile
 	EndProjectSection
 EndProject

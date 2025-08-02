@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Dina.Base\Dina.Base.csproj" />
+    <ProjectReference Include="..\Dina.Vision\Dina.Vision.csproj" />
   </ItemGroup>
 
   <ItemGroup>
