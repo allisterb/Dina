@@ -17,8 +17,7 @@ public class Memory : Runtime
     public Memory(ModelRuntime modelRuntime, string textmodel, string embeddingmodel, string llamapath = "http://localhost:11434")
     {
         this.modelRuntime = modelRuntime;
-        var builder = new KernelMemoryBuilder();
-        ollamaconfig = new OllamaConfig()
+        this.ollamaconfig = new OllamaConfig()
         {
             Endpoint = llamapath,
             TextModel = new OllamaModelConfig() { 
@@ -27,18 +26,18 @@ public class Memory : Runtime
             EmbeddingModel = new OllamaModelConfig() { 
                 ModelName = embeddingmodel,
             }
-        };  
-     
+        };
+
+        var builder = new KernelMemoryBuilder();
         builder.Services.AddLogging(configure => 
             configure
             .AddProvider(loggerProvider)
-            .SetMinimumLevel(LogLevel.Debug));
+            .SetMinimumLevel(LogLevel.Trace));
         
         memory =
             builder
             .WithOllamaTextGeneration(ollamaconfig, new CL100KTokenizer())   
-            .WithOllamaTextEmbeddingGeneration(ollamaconfig, new CL100KTokenizer())
-            
+            .WithOllamaTextEmbeddingGeneration(ollamaconfig, new CL100KTokenizer())            
             .Build<MemoryServerless>();
     }
 
@@ -52,8 +51,8 @@ public class Memory : Runtime
         => await ExecuteAsync(memory.SearchAsync(query, index: index), "Query \"{0}\" of index {1} returned {2} results", "", (r) => r.Results.Count.ToString(), query, index);
 
     #region Fields
-    ModelRuntime modelRuntime;
+    readonly ModelRuntime modelRuntime;
     IKernelMemory memory;
-    OllamaConfig ollamaconfig;  
+    readonly OllamaConfig ollamaconfig;  
     #endregion
 }

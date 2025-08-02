@@ -34,6 +34,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Dina.Base\Dina.Base.csproj" />
+    <ProjectReference Include="..\Dina.Understanding\Dina.Understanding.csproj" />
   </ItemGroup>
 
   <ItemGroup>

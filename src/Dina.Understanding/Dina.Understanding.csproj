@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Processes\" />
+    <Folder Include="NewFolder\" />
   </ItemGroup>
 
 </Project>

@@ -83,7 +83,7 @@ namespace Dina.Tests.Understanding
         public async Task CanCallAgent()
         {
             var ac = new AgentConversation(ModelRuntime.Ollama, OllamaModels.Gemma3n_2eb_tools,
-               "You are an assistant that summarizes key points and sentiments from customer reviews.");
+               "You are an assistant that summarizes key points and sentiments from customer reviews.", immutableKernel: true);
             await ac.TestAgent();
         }
         

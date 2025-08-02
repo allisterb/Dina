@@ -79,7 +79,7 @@ public class AgentConversation : ModelConversation
 #pragma warning disable SKEXP0110,SKEXP0130 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
         agentThread.AIContextProviders.Add(
             new ContextualFunctionProvider(
-                vectorStore: new InMemoryVectorStore(new InMemoryVectorStoreOptions() { EmbeddingGenerator = kernel.GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>()}),
+                vectorStore: vectorStore,
                 vectorDimensions: 384,
                 functions: GetAvailableFunctions(),
                 maxNumberOfFunctions: 3, // Only the top 3 relevant functions are advertised

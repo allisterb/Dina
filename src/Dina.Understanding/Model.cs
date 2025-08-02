@@ -7,7 +7,6 @@ using Microsoft.Extensions.VectorData;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.Ollama;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
@@ -103,7 +102,7 @@ public class ModelConversation : Runtime
                 FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: true),
                 ExtensionData = new Dictionary<string, object>()
             };
-            //embeddingService = //new LLamaSharpEmbeddingGenerationService(ex, parameters, loggerFactory);
+            //embeddingService = new LLamaSharpEmbeddingGenerationService(ex, parameters, loggerFactory);
             chat = new LLamaSharpChatCompletion(ex);
 #pragma warning disable SKEXP0001,SKEXP0010 
             client = chat.AsChatClient();
@@ -123,15 +122,14 @@ public class ModelConversation : Runtime
             };
             Info("Using OpenAI compatible API at {0} with model {1}", runtimePath, model);
         }
-
+        
         builder.Services
-            .AddInMemoryVectorStore(new InMemoryVectorStoreOptions()
-            {
-                EmbeddingGenerator = ((IEmbeddingGenerator<string, Embedding<float>>)client)
-            })
             .AddChatClient(client)
             .UseFunctionInvocation(loggerFactory);
         kernel = builder.Build();
+        
+        vectorStore = new InMemoryVectorStore(new InMemoryVectorStoreOptions() { EmbeddingGenerator = kernel.GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>() });
+        
         if (systemPrompts != null)
         {
             foreach (var systemPrompt in systemPrompts)
@@ -194,9 +192,8 @@ public class ModelConversation : Runtime
         }
         messages.AddAssistantMessage(sb.ToString());
     }
-
-    public VectorStore VectorStore => kernel.Services.GetRequiredService<VectorStore>();    
     #endregion
+    public VectorStore vectorStore;
 
     #region Fields
 
