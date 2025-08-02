@@ -8,8 +8,8 @@ using Microsoft.SemanticKernel.Functions;
 
 public class AgentConversation : ModelConversation
 {
-    public AgentConversation(ModelRuntime runtimeType, string model, string instructions, string name = "Default Agent", bool immutableKernel = false,
-        string runtimePath = "http://localhost:11434", string[]? systemPrompts = null, params (object, string)[] plugins)
+    public AgentConversation(string instructions, string name = "Default Agent", (object, string)[]? plugins = null, bool immutableKernel = false, ModelRuntime runtimeType = ModelRuntime.Ollama, string model = OllamaModels.Gemma3n_2eb_tools, 
+        string runtimePath = "http://localhost:11434", string[]? systemPrompts = null)
                 : base(runtimeType, model, runtimePath, systemPrompts)
     {
         agent = new ChatCompletionAgent()
@@ -27,9 +27,10 @@ public class AgentConversation : ModelConversation
                     RetainArgumentTypes = true
                 })
             }),
-            UseImmutableKernel = immutableKernel
+            UseImmutableKernel = immutableKernel,
         };
-        AddPlugins(plugins);
+        if (plugins is not null && plugins.Length > 0) AddPlugins(plugins);
+
 #pragma warning restore SKEXP0130, SKEXP0001
     }
 

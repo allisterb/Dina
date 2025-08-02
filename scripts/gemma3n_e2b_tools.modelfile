@@ -17,23 +17,23 @@ You may call one or more functions to assist with the user query. You are provid
 {{- end }}
 </tools>
 
-If you decide to call any functions you MUST provide all function call invocations as objects using the schema:
+If you decide to call any functions you MUST provide all function call invocations as objects using EXACTLY the JSON schema:
 {
-"tool_calls": [
-	{"function": {"name": <function-name>, "arguments": <args-json-object>}}
+"tool_calls":[
+	{"function": {"name": <function-name>, "arguments": <arguments-json-object> }}
 ]
 }
-When you call a function, your response MUST start EXACTLY with:
+When you call a function, your response MUST be EXACTLY:
 {
-"tool_calls": [
-	{"function": {"name": "...", "arguments": { ... }}}
+"tool_calls":[
+	{"function": {"name": <function-name>, "arguments": <arguments-json-object> }}
 ]
 }
-NO ```json prefix, no markdown ```fences, no extra text and no line break before '{'.
+NO ```json prefix, no markdown ```fences, no extra text and no line break before '{'. Ensure that arguments are properly formatted as a JSON object.
 
 You SHOULD NOT include any other text in the response if you call functions. If you call functions then use ONLY the function response to answer queries or request further function calls.
 
-When you do not call any functions, you MUST respond with ONLY a text message that answers the user query without function response starting with '{'.
+When you do not call any functions, you MUST respond with ONLY a text message that answers the user query WITHOUT ANY tool calls.
 
 {{- end }}
 <end_of_turn>
@@ -50,7 +50,7 @@ When you do not call any functions, you MUST respond with ONLY a text message th
 {
 "tool_calls":[
 {{- range .ToolCalls }}
-{"function" : {"name": "{{ .Function.Name }}", "arguments": {{ .Function.Arguments }}}}
+	{"function": {"name": "{{ .Function.Name }}", "arguments": {{ .Function.Arguments }} }}
 {{- end }}
 ]
 }

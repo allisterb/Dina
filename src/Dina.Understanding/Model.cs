@@ -41,7 +41,7 @@ public static class OllamaModels
 public class ModelConversation : Runtime
 {
     #region Constructors
-    public ModelConversation(ModelRuntime runtimeType, string model, string runtimePath = "http://localhost:11434", string[]? systemPrompts = null)
+    public ModelConversation(ModelRuntime runtimeType = ModelRuntime.Ollama, string model = OllamaModels.Gemma3n_2eb_tools, string runtimePath = "http://localhost:11434", string[]? systemPrompts = null)
     {
         this.runtimeType = runtimeType;
         this.runtimePath = runtimePath;
