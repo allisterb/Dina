@@ -4,6 +4,7 @@ using Spectre.Console;
 using System.Drawing;
 using System.Text;
 using Co = Colorful.Console;
+using static Program;
 
 internal class Controller
 {
@@ -46,7 +47,7 @@ internal class Controller
         AnsiConsole.Markup(TextToBraille("Hello this is Dina, your AI assistant. Type 'help' for commands.\n"));
     loop:
         inputEnabled = true;
-        string i = ReadLine.Read(promptString);
+        string i = ReadLine.Read(promptString, KeyProc);
 
         AnsiConsole.Progress()
             .AutoRefresh(true)
@@ -54,7 +55,7 @@ internal class Controller
             .Columns(
             [
                 new SpinnerColumn(Spinner.Known.Dots),
-                //new Ta
+
             ])
             .StartAsync(async ctx =>
             {
@@ -63,11 +64,19 @@ internal class Controller
                 await HandleInputAsync(t, DateTime.Now, i);
                 t.StopTask();                
             });
-        goto loop;
+    goto loop;
     }
     
     internal static async Task HandleInputAsync(ProgressTask t, DateTime time, string input)
     {
+        switch(input)
+        {
+            case ("$$quit$$"):
+                AnsiConsole.Markup("Goodbye!");
+                Exit(ExitResult.SUCCESS);
+                break;
+            default: break;
+        }
         try
         {
             if (activeConversation is null)
@@ -78,20 +87,31 @@ internal class Controller
             {
                 if (!t.IsFinished) t.StopTask();
                 if (string.IsNullOrEmpty(response.Content)) continue;
-                AnsiConsole.Markup(response.Content);
+                AnsiConsole.Write(new Align(new Text(response.Content), HorizontalAlignment.Left, VerticalAlignment.Bottom));
             }
         }
         catch (Exception ex)
         {
-            SayErrorLine("[red]Error: {0}[/]", ex.Message);
+            //SayErrorLine("[red]Error: {0}[/]", ex.Message.Trim());
+            AnsiConsole.Write(new Align(new Text(ex.Message.Trim()), HorizontalAlignment.Left, VerticalAlignment.Middle));
             if (ex.InnerException is not null)
             {
-                SayErrorLine("[red]Inner Exception: {0}[/]", ex.InnerException.Message);
+                //SayErrorLine("[red]Inner Exception: {0}[/]", ex.InnerException.Message.Trim());
             }
         }
         finally
         {
             if (!t.IsFinished) t.StopTask();
+        }
+    }
+
+    internal static string KeyProc(ConsoleKeyInfo key)
+    {
+        switch (key.Key)
+        {
+            case ConsoleKey.Escape: return "$$quit$$";
+            case ConsoleKey.F1: return "$$help$$";
+            default: return "";
         }
     }
 
@@ -181,6 +201,10 @@ internal class Controller
 
     static bool inputEnabled = false;
 
+    public static Dictionary<string,string> systemMessage = new Dictionary<string, string>()
+    {
+        {"quit", "$$quit$$" }
+    };
     static ModelConversation? activeConversation;
     #endregion
 }

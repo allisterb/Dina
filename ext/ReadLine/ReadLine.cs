@@ -21,11 +21,11 @@ namespace System
         public static bool HistoryEnabled { get; set; }
         public static IAutoCompleteHandler AutoCompletionHandler { private get; set; }
 
-        public static string Read(string prompt = "", string @default = "")
+        public static string Read(string prompt, Func<ConsoleKeyInfo, string> keyProc, string @default = "")
         {
             AnsiConsole.Markup(prompt);
             KeyHandler keyHandler = new KeyHandler(new Console2(), _history, AutoCompletionHandler);
-            string text = GetText(keyHandler);
+            string text = GetText(keyHandler, keyProc);
 
             if (String.IsNullOrWhiteSpace(text) && !String.IsNullOrWhiteSpace(@default))
             {
@@ -40,11 +40,11 @@ namespace System
             return text;
         }
 
-        public static string ReadPassword(string prompt = "")
+        public static string ReadPassword(Func<ConsoleKeyInfo, string> keyProc, string prompt = "")
         {
             Console.Write(prompt);
             KeyHandler keyHandler = new KeyHandler(new Console2() { PasswordMode = true }, null, null);
-            return GetText(keyHandler);
+            return GetText(keyHandler, keyProc);
         }
 
         private static object locker = new object();
@@ -94,16 +94,17 @@ namespace System
         }
 
 
-        private static string GetText(KeyHandler keyHandler)
+        private static string GetText(KeyHandler keyHandler, Func<ConsoleKeyInfo, string> keyProc)
         {
             ConsoleKeyInfo keyInfo = TimedReadKey(true);
+            var p = keyProc(keyInfo);
+            if (!string.IsNullOrEmpty(p)) return p;
             while (keyInfo.Key != ConsoleKey.Enter)
             {
                 keyHandler.Handle(keyInfo);
                 keyInfo = TimedReadKey(true);
             }
-
-            Console.WriteLine();
+            //Console.WriteLine();
             return keyHandler.Text;
         }
     }
