@@ -88,27 +88,47 @@ internal class Controller
             StringBuilder s = new StringBuilder();
             await foreach (var response in activeConversation.Prompt(input))
             {
-                var content = response.Content;
-                if (string.IsNullOrEmpty(content?.Trim('\n')))
+                if (string.IsNullOrEmpty(response.Content))
                     continue;
-                else if (content.Contains("\n"))
+                else if (string.IsNullOrEmpty(response.Content.Trim()))
                 {
-                    t.StopTask();
-                    var chunks = content.Split("\n");
-                    s.AppendLine(chunks[0].Trim());
-                    SayInfoLine(s.ToString());
-                    s.Clear();
-                    foreach (var c in chunks.Take(1..)) s.AppendLine(c.Trim());
+                    if (s.Length > 0)
+                    {
+                        if (!t.IsFinished) t.StopTask();
+                        SayInfoLine(s.ToString());
+                        s.Clear();
+                        continue;
+                    }
+                    else continue;
+                }
+                else if (response.Content.Contains("\n"))
+                {
+                    if (!t.IsFinished) t.StopTask();
+                    if (response.Content.EndsWith("\n"))
+                    {
+                        s.Append(response.Content);
+                        SayInfoLine(s.ToString());
+                        s.Clear();
+                    }
+                    else
+                    {
+                        var chunks = response.Content.Split("\n");
+                        s.Append(chunks[0]);
+                        SayInfoLine(s.ToString());
+                        s.Clear();
+                        foreach (var c in chunks.Take(1..)) s.AppendLine(c.Trim('\n'));
+                    }
                 }
                 else
                 {
-                    s.Append(content);
+                    s.Append(response.Content);
                 }
             }
             if (!t.IsFinished) t.StopTask();
             if (s.Length > 0)
             {
                 SayInfoLine(s.ToString());
+                s.Clear();
             }
         }
         catch (Exception ex)
@@ -135,6 +155,7 @@ internal class Controller
 
     internal static void SayInfoLine(string template, params object[] args)
     {
+        if (template.Length == 0 || (template.Length == 1 && template[0] == '*')) return;
         AnsiConsole.MarkupLine($"[yellow]{template}[/]", args);
         AnsiConsole.MarkupLine($"[yellow]{TextToBraille(string.Format(template, args))}[/]");
     }
