@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Threading;
 
 using Spectre.Console;
+using Co = Colorful.Console;
+
 namespace System
 {
     public static class ReadLine
@@ -97,7 +99,7 @@ namespace System
         private static string GetText(KeyHandler keyHandler, Func<ConsoleKeyInfo, string> keyProc)
         {
             ConsoleKeyInfo keyInfo = TimedReadKey(true);
-            var p = keyProc(keyInfo);
+            var p = keyProc(keyInfo); 
             if (!string.IsNullOrEmpty(p)) return p;
             while (keyInfo.Key != ConsoleKey.Enter)
             {

@@ -8,6 +8,8 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
+using static Result;
+
 public class FilesPlugin
 {
     private readonly DirectoryInfo dir;
@@ -31,33 +33,14 @@ public class FilesPlugin
     [KernelFunction, Description("Search for files containing the specified text in the directory and its subdirectories")]
     public async Task<List<string>> SearchFilesByContentAsync(
         [Description("Text to search for within files")] string searchText,
-        ILogger logger)
+        ILogger? logger = null)
     {
         var result = new List<string>();
         foreach (var file in dir.EnumerateFiles("*", SearchOption.AllDirectories))
         {
-            var content = "";
             try
             {
-                if (file.Extension == ".pdf")
-                {
-                    content = Documents.ConvertPdfToText(file.FullName).Value.FirstOrDefault() ?? "";
-
-                }
-                else if (file.Extension == ".txt" || file.Extension == ".md")
-                {
-                    content = await File.ReadAllTextAsync(file.FullName);
-                }
-                else
-                {
-                    logger?.LogError("Unsupported file type: {FileName}", file.FullName);
-                    continue;
-                }
-                    
-                if (content.Contains(searchText, StringComparison.OrdinalIgnoreCase))
-                {
-                    result.Add(file.FullName);
-                }
+                if (await FileContainsTextAsync(file.FullName, searchText, logger)) result.Add(file.FullName); 
             }
             catch(Exception ex)
             {
@@ -68,11 +51,11 @@ public class FilesPlugin
         return result;
     }
 
-    [KernelFunction, Description("Check if a file contains the specified text. Supports .pdf, .txt, and .md files.")]
+    [KernelFunction, Description("Check if a file contains the specified text. Supports .pdf, .jpg, .png, .txt, and .md files.")]
     public async Task<bool> FileContainsTextAsync(
         [Description("Full path to the file to search")] string filePath,
         [Description("Text to search for within the file")] string searchText,
-        ILogger logger
+        ILogger? logger = null
     )
     {
         var content = "";
@@ -85,6 +68,10 @@ public class FilesPlugin
             if (file.Extension == ".pdf")
             {
                 content = Documents.ConvertPdfToText(file.FullName).Value.FirstOrDefault() ?? "";
+            }
+            else if (file.Extension == ".jpg" || file.Extension == ".png" || file.Extension == ".tiff" || file.Extension == ".bmp")
+            {
+                content = await ResultOrFail(Documents.ConvertImageToTextAsync(File.ReadAllBytes(filePath)));
             }
             else if (file.Extension == ".txt" || file.Extension == ".md")
             {
@@ -103,7 +90,6 @@ public class FilesPlugin
         {
             // Log the error and return false
             logger?.LogError(ex, "Error reading file: {FileName}", filePath);
-            
             return false;
         }
     }

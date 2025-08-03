@@ -3,6 +3,8 @@ namespace Dina.Tests.Vision;
 using Serilog;
 using Serilog.Extensions.Logging;
 
+using static Result;
+
 public class DocumentTests
 {
     static DocumentTests()
@@ -56,6 +58,7 @@ public class DocumentTests
         var text = await Documents.ScanTextAsync();
         Assert.True(text.IsSuccess);
         Assert.NotEmpty(text.Value);
+        
     }
 
 
@@ -80,12 +83,16 @@ public class DocumentTests
     }
 
     [Fact]
-    public void CanConvert()
+    public void CanConvertImageToText()
     {
-        var text = Documents.ConvertImageToText(File.ReadAllBytes("..\\..\\..\\..\\data\\eevaccinecard.jpg"));
+        var text = Documents.ConvertImageToText(File.ReadAllBytes("..\\..\\..\\..\\data\\test7.jpg"));
         Assert.True(text.IsSuccess);
         Assert.NotEmpty(text.Value);    
+        Console.WriteLine(text.Value);
 
-
+        text = Documents.ConvertImageToText((File.ReadAllBytes("..\\..\\..\\..\\data\\test8.jpg")));
+        Assert.True(text.IsSuccess);
+        Assert.NotEmpty(text.Value);
+        Console.WriteLine(text.Value);
     }
 }

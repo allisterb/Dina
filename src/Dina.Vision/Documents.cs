@@ -146,7 +146,7 @@ public class Documents : Runtime
         RunCmd(TesseractPath, $"{FailIfFileDoesNotExist(imageFilePath)} stdout -l {lang} --psm 1 --oem 1 --loglevel ERROR", Path.GetDirectoryName(TesseractPath)!);    
     
     public static Result<string> ConvertImageToText(byte[] imageData, string lang = "eng") => 
-        RunCmd(TesseractPath, $"stdin stdout -l {lang} --psm 1 --oem 1 --loglevel ERROR", imageData, Path.GetDirectoryName(TesseractPath)!);
+        RunCmd(TesseractPath, $"stdin stdout -l {lang} --psm 6 --loglevel ERROR", imageData, Path.GetDirectoryName(TesseractPath)!);
     
     public static async Task<Result<string>> ConvertImageToTextAsync(byte[] imageData, string lang = "eng") => 
         await RunCmdAsync(TesseractPath, $"stdin stdout -l {lang} --psm 1 --oem 1 --loglevel ERROR", imageData, Path.GetDirectoryName(TesseractPath)!);

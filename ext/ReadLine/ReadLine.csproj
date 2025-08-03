@@ -25,4 +25,8 @@
     <PackageReference Include="Spectre.Console" Version="0.50.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Colorful.Console\Colorful.Console.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -1,5 +1,6 @@
 using System;
-using Spectre.Console;
+using Co = Colorful.Console;
+
 namespace Internal.ReadLine.Abstractions
 {
     internal class Console2 : IConsole
@@ -28,9 +29,9 @@ namespace Internal.ReadLine.Abstractions
             if (PasswordMode)
                 value = new String(default(char), value.Length);
 
-            AnsiConsole.Markup(value);
+            Co.Write(value);
         }
 
-        public void WriteLine(string value) => AnsiConsole.MarkupLine(value);
+        public void WriteLine(string value) => Co.WriteLine(value);
     }
 }

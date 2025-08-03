@@ -3,8 +3,11 @@
 using Spectre.Console;
 using System.Drawing;
 using System.Text;
+
 using Co = Colorful.Console;
+using SystemColor = System.Drawing.Color;
 using static Program;
+using Colorful;
 
 internal class Controller
 {
@@ -32,7 +35,7 @@ internal class Controller
 
     internal static void SetPrompt(string prompt) => promptString = prompt;
 
-    internal static void SetDefaultPrompt() => promptString = "[blue]|>[/]";
+    internal static void SetDefaultPrompt() => promptString = "|>";
 
     internal static void Start()
     {
@@ -47,21 +50,19 @@ internal class Controller
         AnsiConsole.Markup(TextToBraille("Hello this is Dina, your AI assistant. Type 'help' for commands.\n"));
     loop:
         inputEnabled = true;
-        string i = ReadLine.Read(promptString, KeyProc);
-
+        string input = ReadLine.Read(promptString, KeyProc);
         AnsiConsole.Progress()
             .AutoRefresh(true)
             .AutoClear(false)
             .Columns(
             [
                 new SpinnerColumn(Spinner.Known.Dots),
-
             ])
             .StartAsync(async ctx =>
             {
                 inputEnabled = false;   
                 var t = ctx.AddTask("Thinking..."); 
-                await HandleInputAsync(t, DateTime.Now, i);
+                await HandleInputAsync(t, DateTime.Now, input);
                 t.StopTask();                
             });
     goto loop;
@@ -72,6 +73,7 @@ internal class Controller
         switch(input)
         {
             case ("$$quit$$"):
+                t.StopTask();
                 AnsiConsole.Markup("Goodbye!");
                 Exit(ExitResult.SUCCESS);
                 break;
@@ -87,16 +89,15 @@ internal class Controller
             {
                 if (!t.IsFinished) t.StopTask();
                 if (string.IsNullOrEmpty(response.Content)) continue;
-                AnsiConsole.Write(new Align(new Text(response.Content), HorizontalAlignment.Left, VerticalAlignment.Bottom));
+                SayInfoLine(response.Content);  
             }
         }
         catch (Exception ex)
         {
-            //SayErrorLine("[red]Error: {0}[/]", ex.Message.Trim());
-            AnsiConsole.Write(new Align(new Text(ex.Message.Trim()), HorizontalAlignment.Left, VerticalAlignment.Middle));
+            SayErrorLine(ex.Message.Trim());
             if (ex.InnerException is not null)
             {
-                //SayErrorLine("[red]Inner Exception: {0}[/]", ex.InnerException.Message.Trim());
+                SayErrorLine("Inner Exception: {0}", ex.InnerException.Message.Trim());
             }
         }
         finally
@@ -115,9 +116,17 @@ internal class Controller
         }
     }
 
-    internal static void SayInfoLine(string template, params object[] args) => AnsiConsole.Markup(template, args);
+    internal static void SayInfoLine(string template, params object[] args)
+    {
+        Co.WriteLineFormatted(template, SystemColor.Yellow, SystemColor.Green, args);
+        Co.WriteLine(TextToBraille(string.Format(template, args)), SystemColor.Yellow);
+    }
 
-    internal static void SayErrorLine(string template, params object[] args) => AnsiConsole.Markup(template, args);
+    internal static void SayErrorLine(string template, params object[] args)
+    {
+        Co.WriteLineFormatted(template, SystemColor.Pink, SystemColor.PaleGoldenrod, args);
+        Co.WriteLineFormatted(TextToBraille(string.Format(template, args)), SystemColor.Pink, SystemColor.PaleGoldenrod);
+    }
 
     // Translate from https://github.com/vineethsubbaraya/pybraille/blob/main/pybraille/main.py
     internal static string TextToBraille(string textToConvert)
@@ -199,12 +208,15 @@ internal class Controller
 
     static string promptString = "|>";
 
+    static string LastPrompt = "";
+
     static bool inputEnabled = false;
 
     public static Dictionary<string,string> systemMessage = new Dictionary<string, string>()
     {
         {"quit", "$$quit$$" }
     };
+
     static ModelConversation? activeConversation;
     #endregion
 }

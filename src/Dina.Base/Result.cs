@@ -120,6 +120,10 @@ public static class Result
         return r;
     }
 
+    public static T ResultOrFail<T>(Result<T> result) => result.IsSuccess ? result.Value : throw new Exception("The operation failed: " + result.Message, result.Exception);
+
+    public static async Task<T> ResultOrFail<T>(Task<Result<T>> result) => (await result).IsSuccess ? result.Result.Value : throw new Exception("The operation failed: " + result.Result.Message, result.Result.Exception);
+
     public static bool Succedeed<T>(Result<T> result, out Result<T> r)
     {
         r = result;
