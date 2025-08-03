@@ -21,9 +21,8 @@ internal class Program : Runtime
     {
         System.Console.OutputEncoding = System.Text.Encoding.UTF8;
         System.Console.InputEncoding = System.Text.Encoding.UTF8;
-        System.Console.BufferWidth = System.Console.LargestWindowWidth;
         AnsiConsole.Clear();
-        AnsiConsole.Write(new Align(new FigletText("Dina").Centered().Color(Color.Yellow), HorizontalAlignment.Center, VerticalAlignment.Top));
+        AnsiConsole.Write(new FigletText("Dina").Centered().Color(Color.Yellow));
         Controller.Start();
     }
 

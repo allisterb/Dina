@@ -47,22 +47,22 @@ internal class Controller
 
     internal static void Prompt()
     {
-        AnsiConsole.Markup(TextToBraille("Hello this is Dina, your AI assistant. Type 'help' for commands.\n"));
+        Co.WriteLine(TextToBraille("Hello this is Dina, your AI assistant. Type 'help' for commands.\n"), SystemColor.Yellow);
     loop:
         inputEnabled = true;
         string input = ReadLine.Read(promptString, KeyProc);
         AnsiConsole.Progress()
             .AutoRefresh(true)
-            .AutoClear(false)
+            .AutoClear(true)
             .Columns(
-            [
-                new SpinnerColumn(Spinner.Known.Dots),
+            [                
+              new SpinnerColumn(Spinner.Known.Dots),
             ])
-            .StartAsync(async ctx =>
+            .Start(ctx =>
             {
                 inputEnabled = false;   
                 var t = ctx.AddTask("Thinking..."); 
-                await HandleInputAsync(t, DateTime.Now, input);
+                HandleInputAsync(t, DateTime.Now, input).Wait();
                 t.StopTask();                
             });
     goto loop;
@@ -74,7 +74,7 @@ internal class Controller
         {
             case ("$$quit$$"):
                 t.StopTask();
-                AnsiConsole.Markup("Goodbye!");
+                Co.WriteLine("Goodbye!");
                 Exit(ExitResult.SUCCESS);
                 break;
             default: break;
@@ -87,13 +87,14 @@ internal class Controller
             }
             await foreach (var response in activeConversation.Prompt(input))
             {
-                if (!t.IsFinished) t.StopTask();
+                t.StopTask();
                 if (string.IsNullOrEmpty(response.Content)) continue;
                 SayInfoLine(response.Content);  
             }
         }
         catch (Exception ex)
         {
+            t.StopTask();
             SayErrorLine(ex.Message.Trim());
             if (ex.InnerException is not null)
             {
@@ -102,7 +103,7 @@ internal class Controller
         }
         finally
         {
-            if (!t.IsFinished) t.StopTask();
+            
         }
     }
 
@@ -118,14 +119,16 @@ internal class Controller
 
     internal static void SayInfoLine(string template, params object[] args)
     {
-        Co.WriteLineFormatted(template, SystemColor.Yellow, SystemColor.Green, args);
+        Co.WriteLine(template, SystemColor.Yellow, args);
         Co.WriteLine(TextToBraille(string.Format(template, args)), SystemColor.Yellow);
+        Co.ResetColor();
     }
 
     internal static void SayErrorLine(string template, params object[] args)
     {
-        Co.WriteLineFormatted(template, SystemColor.Pink, SystemColor.PaleGoldenrod, args);
-        Co.WriteLineFormatted(TextToBraille(string.Format(template, args)), SystemColor.Pink, SystemColor.PaleGoldenrod);
+        Co.WriteLine(template, SystemColor.Red, args);
+        Co.WriteLine(TextToBraille(string.Format(template, args)), SystemColor.Red);
+        Co.ResetColor();
     }
 
     // Translate from https://github.com/vineethsubbaraya/pybraille/blob/main/pybraille/main.py
