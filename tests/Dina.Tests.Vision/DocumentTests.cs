@@ -45,9 +45,19 @@ public class DocumentTests
     [Fact]
     public async Task CanScan()
     {
-        var images = await Documents.Scan();
-        Assert.NotEmpty(images);
+        var images = await Documents.ScanAsync();
+        Assert.True(images.IsSuccess);  
+        Assert.NotEmpty(images.Value);
     }
+
+    [Fact]
+    public async Task CanScanText()
+    {
+        var text = await Documents.ScanTextAsync();
+        Assert.True(text.IsSuccess);
+        Assert.NotEmpty(text.Value);
+    }
+
 
     [Fact]
     public void CanOpenCvScan()

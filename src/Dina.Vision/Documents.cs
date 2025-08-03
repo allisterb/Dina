@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 using NAPS2.Images;
@@ -98,26 +99,37 @@ public class Documents : Runtime
         return devices?.Select(d => d.Name).ToArray() ?? Array.Empty<string>();
         
     }
-    public static async Task<byte[][]> Scan()
+    public static async Task<Result<byte[][]>> ScanAsync()
     {
-        using ScanningContext scanningContext = new ScanningContext(new ImageSharpImageContext());
-        var controller = new ScanController(scanningContext);
-        var device = (await controller.GetDeviceList()).First();
-        var op = Begin("Using scanner {0}", device.Name); 
-        var options = new ScanOptions
+        try
         {
-            Device = device,
-        };
-        var i = 0;
-        List<byte[]> output = new List<byte[]>();    
-        await foreach (var image in controller.Scan(options))
-        {
-            output.Add(image.SaveToMemoryStream(ImageFileFormat.Jpeg).ToArray());
-            i++;
+            using ScanningContext scanningContext = new ScanningContext(new ImageSharpImageContext());
+            var controller = new ScanController(scanningContext);
+            var device = (await controller.GetDeviceList()).FirstOrDefault();
+            if (device is null)
+            {
+                return Failure<byte[][]>("No scanner devices found.");
+            }
+            var op = Begin("Using scanner {0}", device.Name);
+            var options = new ScanOptions
+            {
+                Device = device,
+            };
+            var i = 0;
+            List<byte[]> output = new List<byte[]>();
+            await foreach (var image in controller.Scan(options))
+            {
+                output.Add(image.SaveToMemoryStream(ImageFileFormat.Jpeg).ToArray());
+                i++;
+            }
+            op.Complete();
+            Info("Scanned {0} images from scanner {1}.", i, device.Name);
+            return Success(output.ToArray());
         }
-        op.Complete();
-        Info("Scanned {0} images from scanner {1}.", i, device.Name);   
-        return output.ToArray();
+        catch (Exception ex)
+        {
+            return FailureError<byte[][]>("Failed to scan images.", ex);
+        }
     }
 
     public static byte[] ResizeImage(byte[] imageBytes, int width, int height)
@@ -141,6 +153,46 @@ public class Documents : Runtime
     {
         var args = $"stdin stdout -l {lang} --psm 1 --oem 1 --loglevel ERROR";
         return RunCmd(TesseractPath, args, imageData, Path.GetDirectoryName(TesseractPath)!);
+    }
+
+    public static async Task<Result<string>> ConvertImageToTextAsync(byte[] imageData, string lang = "eng")
+    {
+        var args = $"stdin stdout -l {lang} --psm 1 --oem 1 --loglevel ERROR";
+        return await RunCmdAsync(TesseractPath, args, imageData, Path.GetDirectoryName(TesseractPath)!);
+    }
+
+    public static async Task<Result<string>> ScanTextAsync(string lang = "eng")
+    {
+        var scanResult = await ScanAsync();
+        if (scanResult.IsSuccess)
+        {
+            var imageBytes = scanResult.Value;
+            if (imageBytes != null)
+            {
+                var sb = new StringBuilder();   
+                foreach (var image in imageBytes)
+                {
+                    var result = await ConvertImageToTextAsync(image, lang);
+                    if (result.IsSuccess)
+                    {
+                        sb.AppendLine(result.Value);
+                    }
+                    else
+                    {
+                        return Failure<string>($"Failed to convert image to text: {result.Message}", result.Exception);
+                    }
+                }
+                return Success(sb.ToString());
+            }
+            else
+            {
+                return Failure<string>("No images scanned.");
+            }
+        }
+        else
+        {
+            return Failure<string>(scanResult.Message, scanResult.Exception);
+        }
     }
 }
 

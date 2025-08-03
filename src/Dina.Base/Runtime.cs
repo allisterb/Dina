@@ -305,6 +305,86 @@ namespace Dina
             }
         }
 
+        public static async Task<Result<string>> RunCmdAsync(
+            string cmdName,
+            string arguments,
+            byte[] input,
+            string? workingDir = null,
+            bool checkExists = true,
+            bool failOnStdError = false)
+        {
+            if (checkExists && !(File.Exists(cmdName) || File.Exists(cmdName + ".exe") || File.Exists(cmdName.Replace(".exe", ""))))
+            {
+                return FailureError<string>("The executable {0} does not exist.", cmdName);
+            }
+
+            using (Process p = new Process())
+            {
+                var output = new StringBuilder();
+                var error = new StringBuilder();
+                p.StartInfo.UseShellExecute = false;
+                p.StartInfo.RedirectStandardInput = true;
+                p.StartInfo.RedirectStandardOutput = true;
+                p.StartInfo.RedirectStandardError = true;
+                p.StartInfo.CreateNoWindow = true;
+                p.StartInfo.FileName = cmdName;
+                p.StartInfo.Arguments = arguments;
+
+                p.OutputDataReceived += (sender, e) =>
+                {
+                    if (e.Data is not null)
+                    {
+                        output.AppendLine(e.Data);
+                        Debug(e.Data);
+                    }
+                };
+                p.ErrorDataReceived += (sender, e) =>
+                {
+                    if (e.Data is not null)
+                    {
+                        error.AppendLine(e.Data);
+                        Error(e.Data);
+                    }
+                };
+                if (workingDir is not null)
+                {
+                    p.StartInfo.WorkingDirectory = workingDir;
+                }
+                Debug("Executing cmd {0} in working directory {1}.", cmdName + " " + arguments, p.StartInfo.WorkingDirectory);
+                try
+                {
+                    p.Start();
+                    // Write input asynchronously
+                    using (var stdin = p.StandardInput.BaseStream)
+                    {
+                        await stdin.WriteAsync(input, 0, input.Length);
+                        await stdin.FlushAsync();
+                    }
+                    
+                    p.BeginOutputReadLine();
+                    p.BeginErrorReadLine();
+                    await p.WaitForExitAsync();
+
+                    if (error.Length > 0 && (failOnStdError || output.Length == 0))
+                    {
+                        return Failure<string>(error.ToString());
+                    }
+                    else if (p.ExitCode != 0)
+                    {
+                        return Failure<string>(error.ToString());
+                    }
+                    else
+                    {
+                        return Success(output.ToString());
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return FailureError<string>("Error executing command {0} {1}", ex, cmdName, arguments);
+                }
+            }
+        }
+
         public static void CopyDirectory(string sourceDir, string destinationDir, bool recursive = false)
         {
             using var op = Begin("Copying {0} to {1}", sourceDir, destinationDir);
