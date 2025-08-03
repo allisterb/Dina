@@ -18,7 +18,7 @@ namespace Dina.Tests.Understanding
             var lf = new SerilogLoggerFactory(logger);
             var lp = new SerilogLoggerProvider(logger, false);
             Runtime.Initialize("Dina.Understanding", "Tests", false, lf, lp);
-            Documents.MuPdfPath = "C:\\Projects\\Dina\\bin";
+            Documents.BinPath = "C:\\Projects\\Dina\\bin";
             config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("testappsettings.json", optional: false, reloadOnChange: true)
@@ -89,6 +89,24 @@ namespace Dina.Tests.Understanding
             Console.WriteLine(s);
         }
 
+        [Fact]
+        public async Task CanAskGemini3nAboutDocumentImage()
+        {
+            var mc = new ModelConversation();
+            var image = File.ReadAllBytes("..\\..\\..\\..\\data\\train16.jpg");
+            var text = Documents.ConvertImageToText(image);
+            Assert.True(text.IsSuccess);
+            var resp = mc.Prompt("Who is the following invoice document addressed to and what is the client's IBAN number? Document: {0}", text.Value);
+            Assert.NotNull(resp);
+            string s = "";
+            await foreach (var response in resp)
+            {
+                Assert.NotNull(response);
+                s += response;
+            }
+            Assert.NotNull(s);
+            Console.WriteLine(s);
+        }
 
         [Fact]
         public async Task CanCallKernelFunction()

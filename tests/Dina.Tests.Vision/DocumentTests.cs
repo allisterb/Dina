@@ -90,7 +90,7 @@ public class DocumentTests
         Assert.NotEmpty(text.Value);    
         Console.WriteLine(text.Value);
 
-        text = Documents.ConvertImageToText((File.ReadAllBytes("..\\..\\..\\..\\data\\test8.jpg")));
+        text = Documents.ConvertImageToText((File.ReadAllBytes("..\\..\\..\\..\\data\\train16.jpg")));
         Assert.True(text.IsSuccess);
         Assert.NotEmpty(text.Value);
         Console.WriteLine(text.Value);

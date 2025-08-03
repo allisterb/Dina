@@ -2,7 +2,6 @@
 
 using Spectre.Console;
 
-
 internal class Program : Runtime
 {
     #region Enums
@@ -17,8 +16,12 @@ internal class Program : Runtime
     }
     #endregion
 
+    
     static void Main(string[] args)
     {
+        fgcolor = System.Console.ForegroundColor;
+        bgcolor = System.Console.BackgroundColor;
+        AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
         System.Console.OutputEncoding = System.Text.Encoding.UTF8;
         System.Console.InputEncoding = System.Text.Encoding.UTF8;
         AnsiConsole.Clear();
@@ -33,7 +36,24 @@ internal class Program : Runtime
             Cts.Cancel();
             Cts.Dispose();
         }
+        ResetConsoleColors();
         Environment.Exit((int)result);
     }
+
+    public static void ResetConsoleColors()
+    {
+        System.Console.ForegroundColor = fgcolor;
+        System.Console.BackgroundColor = bgcolor;   
+    }
+
+    private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+    {
+        //AnsiConsole.WriteLine()
+        ResetConsoleColors();
+    }
+
+    public static ConsoleColor fgcolor = System.Console.ForegroundColor;
+
+    public static ConsoleColor bgcolor = System.Console.BackgroundColor;
 }
 

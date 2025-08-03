@@ -16,7 +16,7 @@ public class MemoryTests
         var lf = new SerilogLoggerFactory(logger);
         var lp = new SerilogLoggerProvider(logger, false);
         Runtime.Initialize("Dina.Understanding", "Tests", false, lf, lp);
-        Documents.MuPdfPath = "C:\\Projects\\Dina\\bin";
+        Documents.BinPath = "C:\\Projects\\Dina\\bin";
     }
 
     [Fact]

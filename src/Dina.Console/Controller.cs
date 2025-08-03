@@ -50,19 +50,19 @@ internal class Controller
         Co.WriteLine(TextToBraille("Hello this is Dina, your AI assistant. Type 'help' for commands.\n"), SystemColor.Yellow);
     loop:
         inputEnabled = true;
-        string input = ReadLine.Read(promptString, KeyProc);
+        string input = ReadLine.Read(promptString, KeyProc);         
         AnsiConsole.Progress()
             .AutoRefresh(true)
             .AutoClear(true)
             .Columns(
             [                
-              new SpinnerColumn(Spinner.Known.Dots),
+              new SpinnerColumn(Spinner.Known.Dots)
             ])
-            .Start(ctx =>
+            .StartAsync(async ctx =>
             {
                 inputEnabled = false;   
                 var t = ctx.AddTask("Thinking..."); 
-                HandleInputAsync(t, DateTime.Now, input).Wait();
+                await HandleInputAsync(t, DateTime.Now, input);
                 t.StopTask();                
             });
     goto loop;
@@ -95,15 +95,11 @@ internal class Controller
         catch (Exception ex)
         {
             t.StopTask();
-            SayErrorLine(ex.Message.Trim());
+            SayErrorLine(ex.Message);
             if (ex.InnerException is not null)
             {
-                SayErrorLine("Inner Exception: {0}", ex.InnerException.Message.Trim());
+                SayErrorLine("Inner Exception: {0}", ex.InnerException.Message);
             }
-        }
-        finally
-        {
-            
         }
     }
 
