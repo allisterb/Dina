@@ -88,12 +88,13 @@ internal class Controller
             StringBuilder s = new StringBuilder();
             await foreach (var response in activeConversation.Prompt(input))
             {
-                if (string.IsNullOrEmpty(response.Content))
+                var content = response.Content;
+                if (string.IsNullOrEmpty(content?.Trim('\n')))
                     continue;
-                if (response.Content.Contains("\n"))
+                else if (content.Contains("\n"))
                 {
                     t.StopTask();
-                    var chunks = response.Content.Split("\n");
+                    var chunks = content.Split("\n");
                     s.AppendLine(chunks[0].Trim());
                     SayInfoLine(s.ToString());
                     s.Clear();
@@ -101,7 +102,7 @@ internal class Controller
                 }
                 else
                 {
-                    s.Append(response.Content);
+                    s.Append(content);
                 }
             }
             if (!t.IsFinished) t.StopTask();
