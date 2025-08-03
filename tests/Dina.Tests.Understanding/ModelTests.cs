@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Configuration;
-using OllamaSharp;
-using OpenAI.Assistants;
+
 using Serilog;
 using Serilog.Extensions.Logging;
 
@@ -35,7 +34,7 @@ namespace Dina.Tests.Understanding
         [Fact]
         public async Task CanStartOllamaGemini3nChat()
         {
-            var mc = new ModelConversation();
+            var mc = new ModelConversation(model: OllamaModels.Gemma3n_2eb_tools);
             var resp = mc.Prompt("What kind of image is this?", File.ReadAllBytes("C:\\Users\\Allister\\Pictures\\applogo.png"), "image/png");
             string s = "";
             Assert.NotNull(resp);
@@ -53,9 +52,9 @@ namespace Dina.Tests.Understanding
         {
             var mc = new ModelConversation();
             var pdfbin = File.ReadAllBytes("..\\..\\..\\..\\data\\test.pdf");
-            var pdftext = Documents.ConvertPdfToText("..\\..\\..\\..\\data\\test.pdf");
+            var pdftext = Documents.ConvertPdfToText("..\\..\\..\\..\\data\\test4.pdf");
             Assert.True(pdftext.IsSuccess);
-            var resp = mc.Prompt("What is the first question on the document: Document:{0}", pdftext.Value[0]);
+            var resp = mc.Prompt("What is the amount due in the invoice? Document:{0}", pdftext.Value[0]);
             //var resp = mc.Prompt("What is the first question on the text: \n Text:{0}", pdftext.Value[0]);
             string s = "";
             Assert.NotNull(resp);
@@ -65,10 +64,32 @@ namespace Dina.Tests.Understanding
                 s += response;
             }
             Assert.NotNull(s);
+            Console.WriteLine(s);       
 
         }
 
-        
+        [Fact]
+        public async Task CanAskGemini3nAboutPdfImage()
+        {
+            var mc = new ModelConversation();
+            var pdfbin = File.ReadAllBytes("..\\..\\..\\..\\data\\test.pdf");
+            var pdftext = Documents.ConvertPdfToImages("..\\..\\..\\..\\data\\test4.pdf", type:"jpg");
+            Assert.True(pdftext.IsSuccess);
+            var resp = mc.Prompt("Who is the attached invoice addressed to?", Documents.ResizeImage(pdftext.Value[0], 256, 256), "image/jpg");
+            //var resp = mc.Prompt("What is the first question on the text: \n Text:{0}", pdftext.Value[0]);
+           
+            Assert.NotNull(resp);
+            string s = "";
+            await foreach (var response in resp)
+            {
+                Assert.NotNull(response);
+                s += response;
+            }
+            Assert.NotNull(s);
+            Console.WriteLine(s);
+        }
+
+
         [Fact]
         public async Task CanCallKernelFunction()
         {

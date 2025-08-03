@@ -174,13 +174,13 @@ public class ModelConversation : Runtime
         messages.AddAssistantMessage(sb.ToString());
     }
 
-    public async IAsyncEnumerable<StreamingChatMessageContent> Prompt(string prompt, byte[]? imageData, string imageMimeType = "image/jpeg")
+    public async IAsyncEnumerable<StreamingChatMessageContent> Prompt(string prompt, byte[]? imageData, string imageMimeType = "image/jpg")
     {
-        messages.AddUserMessage(new ChatMessageContentItemCollection {
+        messages.AddUserMessage([
             new Microsoft.SemanticKernel.TextContent(prompt),
             new ImageContent(imageData, imageMimeType),
 
-        });
+        ]);
         StringBuilder sb = new StringBuilder();
         await foreach (var m in chat.GetStreamingChatMessageContentsAsync(messages, promptExecutionSettings, kernel))
         {

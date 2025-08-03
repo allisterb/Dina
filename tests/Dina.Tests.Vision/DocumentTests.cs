@@ -15,7 +15,7 @@ public class DocumentTests
         var lf = new SerilogLoggerFactory(logger);
         var lp = new SerilogLoggerProvider(logger, false);
         Runtime.Initialize("Dina.Core.Understanding", "Tests", false, lf, lp);
-        Documents.MuPdfPath = "C:\\Projects\\Dina\\bin";
+        Documents.BinPath = "C:\\Projects\\Dina\\bin";
     }
 
     [Fact]
@@ -67,5 +67,15 @@ public class DocumentTests
 
         OpenCvHoughLinesDocumentScanner.Scan("..\\..\\..\\..\\data\\eevaccinecard.jpg");
         //s.Scan("..\\..\\..\\..\\data\\eevaccinecard.jpg", ".");
+    }
+
+    [Fact]
+    public void CanConvert()
+    {
+        var text = Documents.ConvertImageToText(File.ReadAllBytes("..\\..\\..\\..\\data\\eevaccinecard.jpg"));
+        Assert.True(text.IsSuccess);
+        Assert.NotEmpty(text.Value);    
+
+
     }
 }

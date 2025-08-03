@@ -9,23 +9,30 @@ using System.Threading.Tasks;
 using NAPS2.Images;
 using NAPS2.Images.ImageSharp;
 using NAPS2.Scan;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.Processing;
+
 using OpenCvSharp;
 
 using static Dina.Result;
 
 public class Documents : Runtime
 {
-    public static string MuPdfPath { get; set; } = "bin";
+    public static string BinPath { get; set; } = "bin";
 
-    public static string MuPdfToolPath => Path.Combine(MuPdfPath, "mutool");
+    public static string MuPdfToolPath => Path.Combine(BinPath, "mutool");
 
-    public static Result<byte[][]> ConvertPdfToImages(string pdfFilePath, string? outputDirectory = null)
+    public static string TesseractPath => Path.Combine(BinPath, "tesseract-ocr-5.5.0", "tesseract");
+    
+    public static Result<byte[][]> ConvertPdfToImages(string pdfFilePath, string? outputDirectory = null, string type="jpg")
     {
         if (!File.Exists(pdfFilePath)) return FileDoesNotExistFailure<byte[][]>(pdfFilePath);
         outputDirectory ??= Path.Combine(AssemblyLocation, "convertpdf");
         CreateIfDirectoryDoesNotExist(outputDirectory);
         var name = RandomString(10);
-        var r = RunCmd(MuPdfToolPath, $"convert -o {outputDirectory}\\{name}-%d.png {pdfFilePath}");
+        var r = RunCmd(MuPdfToolPath, $"convert -o {outputDirectory}\\{name}-%d.{type.ToLower()} {pdfFilePath}");
         if (!(r.IsSuccess && r.Value == ""))
         {
             return Failure<byte[][]> ($"Failed to convert PDF to images using mutool: {r.Message}");
@@ -34,7 +41,7 @@ public class Documents : Runtime
         {
             return Failure<byte[][]>($"Failed to convert PDF to images using mutool: {r.Value}");
         }
-        var output = Directory.GetFiles(outputDirectory, $"{name}-*.png", SearchOption.TopDirectoryOnly);
+        var output = Directory.GetFiles(outputDirectory, $"{name}-*.{type.ToLower()}", SearchOption.TopDirectoryOnly);
         if (output is null || output.Length == 0)
         {
             return Failure<byte[][]>("Failed to convert PDF to images using mutool: could not find generated images.");
@@ -46,7 +53,7 @@ public class Documents : Runtime
             {
                 File.Delete(f);
             }
-            Info("Converted PDF {0} to {1} images of total size {2} bytes.", pdfFilePath, result.Length, result.Sum(i => i.Length));
+            Info("Converted PDF {0} to {1} image(s) of total size {2} bytes.", pdfFilePath, result.Length, result.Sum(i => i.Length));
             return Success(result);    
         }
     }
@@ -78,7 +85,7 @@ public class Documents : Runtime
             {
                 File.Delete(f);
             }
-            Info("Converted PDF {0} to {1} strings of total size {2} characters.", pdfFilePath, result.Length, result.Sum(i => i.Length));
+            Info("Converted PDF {0} to {1} string(s) of total size {2} characters.", pdfFilePath, result.Length, result.Sum(i => i.Length));
             return Success(result);
         }
     }
@@ -111,6 +118,29 @@ public class Documents : Runtime
         op.Complete();
         Info("Scanned {0} images from scanner {1}.", i, device.Name);   
         return output.ToArray();
+    }
+
+    public static byte[] ResizeImage(byte[] imageBytes, int width, int height)
+    {
+        using var image = Image.Load(imageBytes);
+        var format = Image.DetectFormat(imageBytes);
+        image.Mutate(x => x.Resize(width, height));
+        using var outputStream = new MemoryStream();    
+        image.Save(outputStream, format);
+        return outputStream.ToArray();
+    }
+
+    public static Result<string> ConvertImageToText(string imageFilePath, string lang = "eng")
+    {
+        if (!File.Exists(imageFilePath)) throw new FileNotFoundException($"The image file {imageFilePath} does not exist.");
+        var args = $"{imageFilePath} stdout -l {lang} --psm 1 --oem 1 --loglevel ERROR";
+        return RunCmd(TesseractPath, args);    
+    }
+
+    public static Result<string> ConvertImageToText(byte[] imageData, string lang = "eng")
+    {
+        var args = $"stdin stdout -l {lang} --psm 1 --oem 1 --loglevel ERROR";
+        return RunCmd(TesseractPath, args, imageData, Path.GetDirectoryName(TesseractPath)!);
     }
 }
 
