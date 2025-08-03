@@ -142,25 +142,15 @@ public class Documents : Runtime
         return outputStream.ToArray();
     }
 
-    public static Result<string> ConvertImageToText(string imageFilePath, string lang = "eng")
-    {
-        if (!File.Exists(imageFilePath)) throw new FileNotFoundException($"The image file {imageFilePath} does not exist.");
-        var args = $"{imageFilePath} stdout -l {lang} --psm 1 --oem 1 --loglevel ERROR";
-        return RunCmd(TesseractPath, args);    
-    }
-
-    public static Result<string> ConvertImageToText(byte[] imageData, string lang = "eng")
-    {
-        var args = $"stdin stdout -l {lang} --psm 1 --oem 1 --loglevel ERROR";
-        return RunCmd(TesseractPath, args, imageData, Path.GetDirectoryName(TesseractPath)!);
-    }
-
-    public static async Task<Result<string>> ConvertImageToTextAsync(byte[] imageData, string lang = "eng")
-    {
-        var args = $"stdin stdout -l {lang} --psm 1 --oem 1 --loglevel ERROR";
-        return await RunCmdAsync(TesseractPath, args, imageData, Path.GetDirectoryName(TesseractPath)!);
-    }
-
+    public static Result<string> ConvertImageToText(string imageFilePath, string lang = "eng") =>    
+        RunCmd(TesseractPath, $"{FailIfFileDoesNotExist(imageFilePath)} stdout -l {lang} --psm 1 --oem 1 --loglevel ERROR", Path.GetDirectoryName(TesseractPath)!);    
+    
+    public static Result<string> ConvertImageToText(byte[] imageData, string lang = "eng") => 
+        RunCmd(TesseractPath, $"stdin stdout -l {lang} --psm 1 --oem 1 --loglevel ERROR", imageData, Path.GetDirectoryName(TesseractPath)!);
+    
+    public static async Task<Result<string>> ConvertImageToTextAsync(byte[] imageData, string lang = "eng") => 
+        await RunCmdAsync(TesseractPath, $"stdin stdout -l {lang} --psm 1 --oem 1 --loglevel ERROR", imageData, Path.GetDirectoryName(TesseractPath)!);
+    
     public static async Task<Result<string>> ScanTextAsync(string lang = "eng")
     {
         var scanResult = await ScanAsync();

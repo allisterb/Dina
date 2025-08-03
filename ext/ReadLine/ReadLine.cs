@@ -23,7 +23,6 @@ namespace System
 
         public static string Read(string prompt = "", string @default = "")
         {
-            AnsiConsole.Write(new Rule { Style = "grey" });
             AnsiConsole.Markup(prompt);
             KeyHandler keyHandler = new KeyHandler(new Console2(), _history, AutoCompletionHandler);
             string text = GetText(keyHandler);
