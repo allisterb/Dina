@@ -4,10 +4,10 @@ using Spectre.Console;
 using System.Drawing;
 using System.Text;
 
-using Co = Colorful.Console;
+using System;
 using SystemColor = System.Drawing.Color;
 using static Program;
-using Colorful;
+
 
 internal class Controller
 {
@@ -47,7 +47,7 @@ internal class Controller
 
     internal static void Prompt()
     {
-        Co.WriteLine(TextToBraille("Hello this is Dina, your AI assistant. Type 'help' for commands.\n"), SystemColor.Yellow);
+        Console.WriteLine(TextToBraille("Hello this is Dina, your AI assistant. Type 'help' for commands.\n"), SystemColor.Yellow);
     loop:
         inputEnabled = true;
         string input = ReadLine.Read(promptString, KeyProc);         
@@ -58,11 +58,11 @@ internal class Controller
             [                
               new SpinnerColumn(Spinner.Known.Dots)
             ])
-            .StartAsync(async ctx =>
+            .Start(ctx =>
             {
                 inputEnabled = false;   
                 var t = ctx.AddTask("Thinking..."); 
-                await HandleInputAsync(t, DateTime.Now, input);
+                HandleInputAsync(t, DateTime.Now, input).Wait();
                 t.StopTask();                
             });
     goto loop;
@@ -74,7 +74,7 @@ internal class Controller
         {
             case ("$$quit$$"):
                 t.StopTask();
-                Co.WriteLine("Goodbye!");
+                Console.WriteLine("Goodbye!");
                 Exit(ExitResult.SUCCESS);
                 break;
             default: break;
@@ -83,14 +83,31 @@ internal class Controller
         {
             if (activeConversation is null)
             {
-                activeConversation = new ModelConversation(ModelRuntime.Ollama, OllamaModels.Gemma3n_2eb);
+                activeConversation = new AgentConversation("You are a helpful agent");
             }
+            StringBuilder s = new StringBuilder();
             await foreach (var response in activeConversation.Prompt(input))
             {
-                t.StopTask();
                 if (string.IsNullOrEmpty(response.Content)) continue;
-                SayInfoLine(response.Content);  
+                if (response.Content.Contains(Environment.NewLine))
+                {
+                    var chunks = response.Content.Split(Environment.NewLine);
+                    s.Append(chunks[0]);
+                    SayInfoLine(s.ToString());
+                    t.Increment(0.1);
+                    s.Clear();
+                    s.Append(chunks.Take(1..));
+                }
+                else
+                {
+                    s.Append(response.Content);
+                }
             }
+            if (s.Length > 0)
+            {
+                SayInfoLine(s.ToString());
+            }
+            t.StopTask();
         }
         catch (Exception ex)
         {
@@ -113,18 +130,18 @@ internal class Controller
         }
     }
 
+
     internal static void SayInfoLine(string template, params object[] args)
     {
-        Co.WriteLine(template, SystemColor.Yellow, args);
-        Co.WriteLine(TextToBraille(string.Format(template, args)), SystemColor.Yellow);
-        Co.ResetColor();
+        AnsiConsole.MarkupLine($"[yellow]{template}[/]", args);
+        AnsiConsole.MarkupLine($"[yellow]{TextToBraille(string.Format(template, args))}[/]");
     }
 
     internal static void SayErrorLine(string template, params object[] args)
     {
-        Co.WriteLine(template, SystemColor.Red, args);
-        Co.WriteLine(TextToBraille(string.Format(template, args)), SystemColor.Red);
-        Co.ResetColor();
+        AnsiConsole.MarkupLine($"[red]{template}[/]", args);
+        AnsiConsole.MarkupLine($"[red]{TextToBraille(string.Format(template, args))}[/]");
+        AnsiConsole.ResetColors();
     }
 
     // Translate from https://github.com/vineethsubbaraya/pybraille/blob/main/pybraille/main.py
@@ -189,7 +206,7 @@ internal class Controller
     #endregion
     #region Fields
 
-    static Options options = new ();
+    static Options options = new();
 
     static ManualResetEvent signalBeep = new ManualResetEvent(false);
 
@@ -211,10 +228,10 @@ internal class Controller
 
     static bool inputEnabled = false;
 
-    public static Dictionary<string,string> systemMessage = new Dictionary<string, string>()
-    {
-        {"quit", "$$quit$$" }
-    };
+    public static Dictionary<string, string> systemMessage = new Dictionary<string, string>()
+            {
+                {"quit", "$$quit$$" }
+            };
 
     static ModelConversation? activeConversation;
     #endregion

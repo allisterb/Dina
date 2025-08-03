@@ -1,9 +1,8 @@
 ﻿using Internal.ReadLine;
 using Internal.ReadLine.Abstractions;
+using Spectre.Console;
 using System.Collections.Generic;
 using System.Threading;
-
-using Co = Colorful.Console;
 
 namespace System
 {
@@ -24,7 +23,7 @@ namespace System
 
         public static string Read(string prompt, Func<ConsoleKeyInfo, string> keyProc, string @default = "")
         {
-            Co.Write(prompt);
+            AnsiConsole.Markup(prompt);
             KeyHandler keyHandler = new KeyHandler(new Console2(), _history, AutoCompletionHandler);
             string text = GetText(keyHandler, keyProc);
 
