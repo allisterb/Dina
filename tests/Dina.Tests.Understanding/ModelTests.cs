@@ -29,6 +29,7 @@ namespace Dina.Tests.Understanding
             displayName = config["Email:DisplayName"] ?? throw new ArgumentNullException("Email:DisplayName");
             me = config["Email:ManagerEmail"] ?? throw new ArgumentNullException("Email:ManagerEmail");
             ms = new MailPlugin(user, password, displayName, "smtp.gmail.com", "imap.gmail.com");
+            fp = new FilesPlugin("..\\..\\..\\..\\data\\files");
         }
 
         [Fact]
@@ -145,8 +146,22 @@ namespace Dina.Tests.Understanding
             }
         }
 
+        [Fact]
+        public async Task AgentCanSearchFiles()
+        {
+            var ac = new AgentConversation("You are an assistant that helps people.", "Files Agent");
+            ac.AddPlugin(fp, "Files");
+            var p = ac.Prompt("Search for files with the name test. If you find any then search each one for the text 'bazinga' and print the file name if you find one, otherwise print bar.");
+            await foreach (var response in p)
+            {
+                Assert.NotNull(response);
+                Console.WriteLine(response.Message.ToString());
+            }   
+        }
+        
         static IConfigurationRoot config;
         static string user, password, displayName, me;
         static MailPlugin ms;
+        static FilesPlugin fp;
     }
 }
