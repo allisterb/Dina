@@ -92,9 +92,9 @@ internal class Controller
             StringBuilder s = new StringBuilder();
             await foreach (var response in activeConversation.Prompt(input))
             {
-                if (string.IsNullOrEmpty(response.Content))
+                if (string.IsNullOrEmpty(response.Message.Content))
                     continue;
-                else if (string.IsNullOrEmpty(response.Content.Trim()))
+                else if (string.IsNullOrEmpty(response.Message.Content.Trim()))
                 {
                     if (s.Length > 0)
                     {
@@ -105,18 +105,18 @@ internal class Controller
                     }
                     else continue;
                 }
-                else if (response.Content.Contains("\n"))
+                else if (response.Message.Content.Contains("\n"))
                 {
                     if (!t.IsFinished) t.StopTask();
-                    if (response.Content.EndsWith("\n"))
+                    if (response.Message.Content.EndsWith("\n"))
                     {
-                        s.Append(response.Content);
+                        s.Append(response.Message.Content);
                         SayInfoLine(s.ToString());
                         s.Clear();
                     }
                     else
                     {
-                        var chunks = response.Content.Split("\n");
+                        var chunks = response.Message.Content.Split("\n");
                         s.Append(chunks[0]);
                         SayInfoLine(s.ToString());
                         s.Clear();
@@ -125,7 +125,7 @@ internal class Controller
                 }
                 else
                 {
-                    s.Append(response.Content);
+                    s.Append(response.Message.Content);
                 }
             }
             if (!t.IsFinished) t.StopTask();
@@ -268,7 +268,7 @@ internal class Controller
             };
 
     static Agent agentManager = new Agent();
-    static ModelConversation? activeConversation;
+    static AgentConversation? activeConversation;
     #endregion
 }
 

@@ -33,7 +33,7 @@ public class Agent : Runtime
 
     public AgentConversation StartUserSession()
     {
-        var c = new AgentConversation("The user has just started the Dina program. You must help them get acclimated and answer any questiond about Dina they may have.", "Startup Agent", plugins: [           
+        var c = new AgentConversation("The user has just started the Dina program. You must help them get acclimated and answer any questions about Dina they may have.", "Startup Agent", plugins: [           
             (new StatePlugin() {SharedState = SharedState}, "State"),
             (new MailPlugin(user, password, displayName) {SharedState = SharedState}, "Mail"),
             (new DocumentsPlugin(){SharedState = SharedState}, "Documents"),

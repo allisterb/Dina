@@ -1,5 +1,7 @@
 ﻿namespace Dina.Console;
 
+using Serilog;
+using Serilog.Extensions.Logging;
 using Spectre.Console;
 
 internal class Program : Runtime
@@ -16,6 +18,18 @@ internal class Program : Runtime
     }
     #endregion
 
+    static Program()
+    {
+        var logger = new LoggerConfiguration()
+           .Enrich.FromLogContext()
+           .MinimumLevel.Verbose()
+           .WriteTo.File(Path.Combine(Runtime.AssemblyLocation, "Dina.log"))
+           .CreateLogger();
+        var lf = new SerilogLoggerFactory(logger);
+        var lp = new SerilogLoggerProvider(logger, false);
+        Initialize("Dina", "CLI", true, lf, lp);
+        Documents.BinPath = "C:\\Projects\\Dina\\bin";
+    }
     #region Methods
     static void Main(string[] args)
     {
