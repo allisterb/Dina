@@ -19,7 +19,6 @@
   
   <ItemGroup>
     <ProjectReference Include="..\..\ext\ReadLine\ReadLine.csproj" />
-    <ProjectReference Include="..\..\tests\Dina.Tests.Speech\Dina.Tests.Speech.csproj" />
     <ProjectReference Include="..\Dina.Base\Dina.Base.csproj" />
     <ProjectReference Include="..\Dina.Understanding\Dina.Understanding.csproj" />
     <ProjectReference Include="..\Dina.Vision\Dina.Vision.csproj" />

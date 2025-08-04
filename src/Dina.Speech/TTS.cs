@@ -53,11 +53,15 @@ namespace Dina.Speech
 
         public static CancellationToken ct = cts.Token;
 
-        public static void EnqueueTTS(string text) => TTSQueue.Enqueue(text);  
+        public static void Enqueue(string text)
+        {
+            var chunks = text.Replace("*", "").Chunk(50);
+            foreach (var c in chunks) TTSQueue.Enqueue(new string(c));
+        }
 
         public static ConcurrentQueue<string> TTSQueue = new ConcurrentQueue<string>();
 
-        static KokoroTTS tts = KokoroTTS.LoadModel(KModel.int8);
+        static KokoroTTS tts = KokoroTTS.LoadModel(KModel.int8, new SessionOptions() { ExecutionMode = ExecutionMode.ORT_PARALLEL});
         
         static KokoroVoice voice = KokoroVoiceManager.GetVoice("af_heart");
 

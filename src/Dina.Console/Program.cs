@@ -25,6 +25,7 @@ internal class Program : Runtime
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
         System.Console.OutputEncoding = System.Text.Encoding.UTF8;
         System.Console.InputEncoding = System.Text.Encoding.UTF8;
+        AnsiConsole.Markup("[green]Loading Dina...[/]");
         if (!KokoroTTS.IsDownloaded(KModel.int8))
         {
             DownloadKokoroModel();
@@ -35,7 +36,6 @@ internal class Program : Runtime
             }
         }
         AnsiConsole.Clear();
-        AnsiConsole.Write(new FigletText("Dina").Centered().Color(Color.Yellow));
         Controller.Start();
     }
 
@@ -46,25 +46,27 @@ internal class Program : Runtime
             Cts.Cancel();
             Cts.Dispose();
         }
-        ResetConsoleColors();
+        ResetConsole();
         Environment.Exit((int)result);
     }
 
-    public static void ResetConsoleColors()
+    public static void ResetConsole()
     {
         System.Console.ForegroundColor = fgcolor;
-        System.Console.BackgroundColor = bgcolor;   
+        System.Console.BackgroundColor = bgcolor;
+        AnsiConsole.ResetColors();
+        AnsiConsole.ResetDecoration();
     }
 
     private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
         var ex = (Exception) e.ExceptionObject;
-        AnsiConsole.WriteLine($"[red] {ex.Message}[/]");
+        AnsiConsole.WriteLine($"[red]{Markup.Escape(ex.Message)}[/]");
         if (ex.InnerException is not null)
         {
-            AnsiConsole.WriteLine($"[red] Inner Exception: {ex.InnerException.Message}[/]");
+            AnsiConsole.WriteLine($"[red] Inner Exception: {Markup.Escape(ex.InnerException.Message)}[/]");
         }
-        ResetConsoleColors();
+        ResetConsole();
         Environment.Exit((int)ExitResult.UNHANDLED_EXCEPTION);
     }
 
@@ -87,7 +89,7 @@ internal class Program : Runtime
         .Start(ctx =>
         {
             var t = ctx.AddTask("Downloading Kokoro TTS model...");
-            KokoroTTS.LoadModelAsync(KModel.float32, (p) => t.Increment(p)).Wait();
+            KokoroTTS.LoadModelAsync(KModel.int8, (p) => t.Increment(p)).Wait();
             t.StopTask();
         });
 

@@ -8,7 +8,6 @@ using Spectre.Console;
 
 using SystemColor = System.Drawing.Color;
 
-using Dina.Speech;
 using static Program;
 
 internal class Controller
@@ -45,6 +44,7 @@ internal class Controller
         ReadLine.HistoryEnabled = true;
         if (beeperOn) StopBeeper();
         SetDefaultPrompt();
+        SayInfoLine("Welcome to Dina. Press F1 or type help at anytime to get help on what you are doing. Press ESC or type $$quit$$ to quit.[/]");
         Prompt();
     }
 
@@ -53,7 +53,6 @@ internal class Controller
     {
         Console.WriteLine(TextToBraille("Hello this is Dina, your AI assistant. Type 'help' for commands.\n"), SystemColor.Yellow);
     loop:
-        TTS.StartTTSWorker();
         inputEnabled = true;
         string input = ReadLine.Read(promptString, KeyProc);         
         AnsiConsole.Progress()
@@ -161,19 +160,17 @@ internal class Controller
     internal static void SayInfoLine(string template, params object[] args)
     {
         if (template.Length == 0 || (template.Length == 1 && template[0] == '*')) return;
-        var text = string.Format(template, args);
-        TTS.EnqueueTTS(text);
-        //tts.SpeakFast(text, voice, new KokoroSharp.Processing.KokoroTTSPipelineConfig() { Speed = 3.0f});
-        //tts.SpeakFast(text, voice);
-        AnsiConsole.MarkupLine($"[lightgoldenrod2_1]{template}[/]", args);
+        var text = Markup.Escape(string.Format(template, args));
+        AnsiConsole.MarkupLine($"[lightgoldenrod2_1]{text}[/]");
         AnsiConsole.MarkupLine($"[yellow]{TextToBraille(text)}[/]");
        
     }
 
     internal static void SayErrorLine(string template, params object[] args)
     {
-        AnsiConsole.MarkupLine($"[red]{template}[/]", args);
-        AnsiConsole.MarkupLine($"[red]{TextToBraille(string.Format(template, args))}[/]");
+        var text = Markup.Escape(string.Format(template, args));
+        AnsiConsole.MarkupLine($"[red]{text}[/]");
+        AnsiConsole.MarkupLine($"[red]{TextToBraille(text)}[/]");
         AnsiConsole.ResetColors();
     }
 
