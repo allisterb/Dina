@@ -1,16 +1,19 @@
 ﻿namespace Dina.Console;
 
-using Spectre.Console;
+using System;
 using System.Drawing;
 using System.Text;
 
-using System;
+using Spectre.Console;
+using KokoroSharp;
+
 using SystemColor = System.Drawing.Color;
 using static Program;
 
-
 internal class Controller
 {
+    
+
     #region Methods
     internal static void EnableBeeper()
     {
@@ -39,11 +42,13 @@ internal class Controller
 
     internal static void Start()
     {
+       
         ReadLine.HistoryEnabled = true;
         if (beeperOn) StopBeeper();
         SetDefaultPrompt();
         Prompt();
     }
+
 
     internal static void Prompt()
     {
@@ -156,7 +161,7 @@ internal class Controller
     internal static void SayInfoLine(string template, params object[] args)
     {
         if (template.Length == 0 || (template.Length == 1 && template[0] == '*')) return;
-        AnsiConsole.MarkupLine($"[yellow]{template}[/]", args);
+        AnsiConsole.MarkupLine($"[lightgoldenrod2_1]{template}[/]", args);
         AnsiConsole.MarkupLine($"[yellow]{TextToBraille(string.Format(template, args))}[/]");
     }
 
@@ -227,6 +232,7 @@ internal class Controller
         return sb.ToString();
     }
     #endregion
+
     #region Fields
 
     static Options options = new();
@@ -257,6 +263,7 @@ internal class Controller
             };
 
     static ModelConversation? activeConversation;
+
     #endregion
 }
 

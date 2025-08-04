@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.6.0" />
+    <PackageReference Include="KokoroSharp.CPU" Version="0.6.2" />
     <PackageReference Include="Spectre.Console" Version="0.50.0" />
   </ItemGroup>
 
@@ -17,7 +18,6 @@
   </PropertyGroup> 
   
   <ItemGroup>
-    <ProjectReference Include="..\..\ext\Colorful.Console\Colorful.Console.csproj" />
     <ProjectReference Include="..\..\ext\ReadLine\ReadLine.csproj" />
     <ProjectReference Include="..\Dina.Base\Dina.Base.csproj" />
     <ProjectReference Include="..\Dina.Understanding\Dina.Understanding.csproj" />
