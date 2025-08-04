@@ -5,15 +5,14 @@ using System.Drawing;
 using System.Text;
 
 using Spectre.Console;
-using KokoroSharp;
 
 using SystemColor = System.Drawing.Color;
+
+using Dina.Speech;
 using static Program;
 
 internal class Controller
 {
-    
-
     #region Methods
     internal static void EnableBeeper()
     {
@@ -54,6 +53,7 @@ internal class Controller
     {
         Console.WriteLine(TextToBraille("Hello this is Dina, your AI assistant. Type 'help' for commands.\n"), SystemColor.Yellow);
     loop:
+        TTS.StartTTSWorker();
         inputEnabled = true;
         string input = ReadLine.Read(promptString, KeyProc);         
         AnsiConsole.Progress()
@@ -161,8 +161,13 @@ internal class Controller
     internal static void SayInfoLine(string template, params object[] args)
     {
         if (template.Length == 0 || (template.Length == 1 && template[0] == '*')) return;
+        var text = string.Format(template, args);
+        TTS.EnqueueTTS(text);
+        //tts.SpeakFast(text, voice, new KokoroSharp.Processing.KokoroTTSPipelineConfig() { Speed = 3.0f});
+        //tts.SpeakFast(text, voice);
         AnsiConsole.MarkupLine($"[lightgoldenrod2_1]{template}[/]", args);
-        AnsiConsole.MarkupLine($"[yellow]{TextToBraille(string.Format(template, args))}[/]");
+        AnsiConsole.MarkupLine($"[yellow]{TextToBraille(text)}[/]");
+       
     }
 
     internal static void SayErrorLine(string template, params object[] args)
@@ -263,7 +268,6 @@ internal class Controller
             };
 
     static ModelConversation? activeConversation;
-
     #endregion
 }
 

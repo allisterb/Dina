@@ -90,7 +90,7 @@ namespace Dina.Tests.Understanding
         }
 
         [Fact]
-        public async Task CanAskGemini3nAboutDocumentImage()
+        public async Task CanAskGemini3nAboutImage()
         {
             var mc = new ModelConversation();
             var image = File.ReadAllBytes("..\\..\\..\\..\\data\\train16.jpg");

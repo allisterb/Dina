@@ -25,14 +25,14 @@ internal class Program : Runtime
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
         System.Console.OutputEncoding = System.Text.Encoding.UTF8;
         System.Console.InputEncoding = System.Text.Encoding.UTF8;
-        if (!KokoroTTS.IsDownloaded(KModel.float32))
+        if (!KokoroTTS.IsDownloaded(KModel.int8))
         {
             DownloadKokoroModel();
-        }
-        if (!KokoroTTS.IsDownloaded(KModel.float32))
-        {
-            AnsiConsole.MarkupLine("[red] Could not download Kokoro TTS model. Exiting.");
-            Exit(ExitResult.UNKNOWN_ERROR);
+            if (!KokoroTTS.IsDownloaded(KModel.int8))
+            {
+                AnsiConsole.MarkupLine("[red] Could not download Kokoro TTS model. Exiting.");
+                Exit(ExitResult.UNKNOWN_ERROR);
+            }
         }
         AnsiConsole.Clear();
         AnsiConsole.Write(new FigletText("Dina").Centered().Color(Color.Yellow));
