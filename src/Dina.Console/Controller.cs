@@ -4,6 +4,7 @@ using System;
 using System.Drawing;
 using System.Text;
 
+using Microsoft.SemanticKernel.Agents;
 using Spectre.Console;
 
 using SystemColor = System.Drawing.Color;
@@ -44,14 +45,13 @@ internal class Controller
         ReadLine.HistoryEnabled = true;
         if (beeperOn) StopBeeper();
         SetDefaultPrompt();
-        SayInfoLine("Welcome to Dina. Press F1 or type help at anytime to get help on what you are doing. Press ESC or type $$quit$$ to quit.[/]");
+        SayInfoLine("Welcome to Dina. Press F1 or type help at anytime to get help on what you are doing. Press ESC or type quit to quit.");
         Prompt();
     }
 
 
     internal static void Prompt()
     {
-        Console.WriteLine(TextToBraille("Hello this is Dina, your AI assistant. Type 'help' for commands.\n"), SystemColor.Yellow);
     loop:
         inputEnabled = true;
         string input = ReadLine.Read(promptString, KeyProc);         
@@ -267,7 +267,7 @@ internal class Controller
                 {"quit", "$$quit$$" }
             };
 
-    static Agent agentManager = new Agent();
+    static AgentManager agentManager = new AgentManager();
     static AgentConversation? activeConversation;
     #endregion
 }

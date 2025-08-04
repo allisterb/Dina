@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
 
-public class Agent : Runtime
+public class AgentManager : Runtime
 {
     public List<AgentConversation> Conversations = new List<AgentConversation>();
 
@@ -17,7 +17,7 @@ public class Agent : Runtime
         { "Agent", new() }
     };
 
-    public Agent()
+    public AgentManager()
     {
         config = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
@@ -48,8 +48,8 @@ public class Agent : Runtime
 
     string[] systemPrompts = [
         "You are Dina, a document intelligence agent that assists blind users with getting information from printed and electronic documents and interfacing with different business systems and processes. " +
-        "Your users are employees who vision-impaired so keep your answers as short and precise as possible." +
-        "Use only the provided tools to answer the user's queries and carry out actions they requested."
+        "Your users are employees who are vision-impaired so keep your answers as short and precise as possible." +
+        "Use ONLY the provided tools to answer the user's queries and carry out actions they requested."
         ];
 
     string user, password, displayName, me, home;

@@ -70,11 +70,11 @@ public class AgentConversation : ModelConversation
         return this;
     }
 
-    public async new IAsyncEnumerable<AgentResponseItem<ChatMessageContent>> Prompt(string prompt, params object[] args)
+    public async new IAsyncEnumerable<AgentResponseItem<StreamingChatMessageContent>> Prompt(string prompt, params object[] args)
     {
         AgentThread? agentThread = null;
         bool hasThreads = agentThreads.TryPeek(out agentThread);
-        await foreach (var m in agent.InvokeAsync(string.Format(prompt, args), agentThread))
+        await foreach (var m in agent.InvokeStreamingAsync(string.Format(prompt, args), agentThread))
         {
             if (!hasThreads || (hasThreads && agentThreads.Peek() != m.Thread))
             {
