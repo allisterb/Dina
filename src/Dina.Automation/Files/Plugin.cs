@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 using static Result;
 
-public class FilesPlugin
+public class FilesPlugin : IPlugin
 {
     private readonly DirectoryInfo dir;
 
@@ -71,7 +71,7 @@ public class FilesPlugin
             }
             else if (file.Extension == ".jpg" || file.Extension == ".png" || file.Extension == ".tiff" || file.Extension == ".bmp")
             {
-                content = await ResultOrFail(Documents.ConvertImageToTextAsync(File.ReadAllBytes(filePath)));
+                content = await ResultOrFail(Documents.OcrImageAsync(File.ReadAllBytes(filePath)));
             }
             else if (file.Extension == ".txt" || file.Extension == ".md")
             {
@@ -93,4 +93,7 @@ public class FilesPlugin
             return false;
         }
     }
+
+    public Dictionary<string, Dictionary<string, object>> SharedState { get; set; } = new Dictionary<string, Dictionary<string, object>>();
+
 }

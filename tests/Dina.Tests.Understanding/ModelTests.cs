@@ -94,7 +94,7 @@ namespace Dina.Tests.Understanding
         {
             var mc = new ModelConversation();
             var image = File.ReadAllBytes("..\\..\\..\\..\\data\\train16.jpg");
-            var text = Documents.ConvertImageToText(image);
+            var text = Documents.OcrImage(image);
             Assert.True(text.IsSuccess);
             var resp = mc.Prompt("Who is the following invoice document addressed to and what is the client's IBAN number? Document: {0}", text.Value);
             Assert.NotNull(resp);

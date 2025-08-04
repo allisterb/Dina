@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 
 
-public class MailPlugin
+public class MailPlugin : IPlugin
 {
     private readonly MailSession _mailSession;
 
@@ -73,4 +73,7 @@ public class MailPlugin
         }
         return result;
     }
+
+    public Dictionary<string, Dictionary<string, object>> SharedState { get; set; } = new Dictionary<string, Dictionary<string, object>>();
+
 }

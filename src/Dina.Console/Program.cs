@@ -1,6 +1,5 @@
 ﻿namespace Dina.Console;
 
-using KokoroSharp;
 using Spectre.Console;
 
 internal class Program : Runtime
@@ -17,7 +16,7 @@ internal class Program : Runtime
     }
     #endregion
 
-    
+    #region Methods
     static void Main(string[] args)
     {
         fgcolor = System.Console.ForegroundColor;
@@ -26,15 +25,6 @@ internal class Program : Runtime
         System.Console.OutputEncoding = System.Text.Encoding.UTF8;
         System.Console.InputEncoding = System.Text.Encoding.UTF8;
         AnsiConsole.Markup("[green]Loading Dina...[/]");
-        if (!KokoroTTS.IsDownloaded(KModel.int8))
-        {
-            DownloadKokoroModel();
-            if (!KokoroTTS.IsDownloaded(KModel.int8))
-            {
-                AnsiConsole.MarkupLine("[red] Could not download Kokoro TTS model. Exiting.");
-                Exit(ExitResult.UNKNOWN_ERROR);
-            }
-        }
         AnsiConsole.Clear();
         Controller.Start();
     }
@@ -50,7 +40,7 @@ internal class Program : Runtime
         Environment.Exit((int)result);
     }
 
-    public static void ResetConsole()
+    static void ResetConsole()
     {
         System.Console.ForegroundColor = fgcolor;
         System.Console.BackgroundColor = bgcolor;
@@ -58,22 +48,22 @@ internal class Program : Runtime
         AnsiConsole.ResetDecoration();
     }
 
-    private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+    static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
         var ex = (Exception) e.ExceptionObject;
-        AnsiConsole.WriteLine($"[red]{Markup.Escape(ex.Message)}[/]");
-        if (ex.InnerException is not null)
-        {
-            AnsiConsole.WriteLine($"[red] Inner Exception: {Markup.Escape(ex.InnerException.Message)}[/]");
-        }
+        AnsiConsole.WriteException(ex);
         ResetConsole();
         Environment.Exit((int)ExitResult.UNHANDLED_EXCEPTION);
     }
+    #endregion
 
-    public static ConsoleColor fgcolor = System.Console.ForegroundColor;
+    #region Fields
+    static ConsoleColor fgcolor = System.Console.ForegroundColor;
 
-    public static ConsoleColor bgcolor = System.Console.BackgroundColor;
+    static ConsoleColor bgcolor = System.Console.BackgroundColor;
+    #endregion
 
+    /*
     internal static void DownloadKokoroModel()
     {
         AnsiConsole.Progress()
@@ -94,5 +84,6 @@ internal class Program : Runtime
         });
 
     }
+    */
 }
 

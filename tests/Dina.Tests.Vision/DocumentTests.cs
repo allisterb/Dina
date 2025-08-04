@@ -85,12 +85,12 @@ public class DocumentTests
     [Fact]
     public void CanConvertImageToText()
     {
-        var text = Documents.ConvertImageToText(File.ReadAllBytes("..\\..\\..\\..\\data\\test7.jpg"));
+        var text = Documents.OcrImage(File.ReadAllBytes("..\\..\\..\\..\\data\\test7.jpg"));
         Assert.True(text.IsSuccess);
         Assert.NotEmpty(text.Value);    
         Console.WriteLine(text.Value);
 
-        text = Documents.ConvertImageToText((File.ReadAllBytes("..\\..\\..\\..\\data\\train16.jpg")));
+        text = Documents.OcrImage((File.ReadAllBytes("..\\..\\..\\..\\data\\train16.jpg")));
         Assert.True(text.IsSuccess);
         Assert.NotEmpty(text.Value);
         Console.WriteLine(text.Value);

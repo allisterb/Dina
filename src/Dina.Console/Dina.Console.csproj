@@ -9,7 +9,6 @@
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.6.0" />
-    <PackageReference Include="KokoroSharp.CPU" Version="0.6.2" />
     <PackageReference Include="Spectre.Console" Version="0.50.0" />
   </ItemGroup>
 
@@ -22,6 +21,12 @@
     <ProjectReference Include="..\Dina.Base\Dina.Base.csproj" />
     <ProjectReference Include="..\Dina.Understanding\Dina.Understanding.csproj" />
     <ProjectReference Include="..\Dina.Vision\Dina.Vision.csproj" />
+  </ItemGroup> 
+  
+  <ItemGroup>
+    <None Update="testappsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

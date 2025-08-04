@@ -142,13 +142,13 @@ public class Documents : Runtime
         return outputStream.ToArray();
     }
 
-    public static Result<string> ConvertImageToText(string imageFilePath, string lang = "eng") =>    
+    public static Result<string> OcrImage(string imageFilePath, string lang = "eng") =>    
         RunCmd(TesseractPath, $"{FailIfFileDoesNotExist(imageFilePath)} stdout -l {lang} --psm 1 --oem 1 --loglevel ERROR", Path.GetDirectoryName(TesseractPath)!);    
     
-    public static Result<string> ConvertImageToText(byte[] imageData, string lang = "eng") => 
+    public static Result<string> OcrImage(byte[] imageData, string lang = "eng") => 
         RunCmd(TesseractPath, $"stdin stdout -l {lang} --oem 1 --psm 1 --loglevel ERROR", imageData, Path.GetDirectoryName(TesseractPath)!);
     
-    public static async Task<Result<string>> ConvertImageToTextAsync(byte[] imageData, string lang = "eng") => 
+    public static async Task<Result<string>> OcrImageAsync(byte[] imageData, string lang = "eng") => 
         await RunCmdAsync(TesseractPath, $"stdin stdout -l {lang} --oem 1 --psm 1 --loglevel ERROR", imageData, Path.GetDirectoryName(TesseractPath)!);
     
     public static async Task<Result<string>> ScanTextAsync(string lang = "eng")
@@ -162,7 +162,7 @@ public class Documents : Runtime
                 var sb = new StringBuilder();   
                 foreach (var image in imageBytes)
                 {
-                    var result = await ConvertImageToTextAsync(image, lang);
+                    var result = await OcrImageAsync(image, lang);
                     if (result.IsSuccess)
                     {
                         sb.AppendLine(result.Value);
@@ -184,6 +184,8 @@ public class Documents : Runtime
             return Failure<string>(scanResult.Message, scanResult.Exception);
         }
     }
+
+    public static async Task<Result<string>> OcrImageAsync(string filepath) => await OcrImageAsync(File.ReadAllBytes(filepath));  
 }
 
 

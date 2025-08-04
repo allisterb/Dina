@@ -87,7 +87,7 @@ internal class Controller
         {
             if (activeConversation is null)
             {
-                activeConversation = new AgentConversation("You are a helpful agent");
+                activeConversation = agentManager.StartUserSession();
             }
             StringBuilder s = new StringBuilder();
             await foreach (var response in activeConversation.Prompt(input))
@@ -138,11 +138,14 @@ internal class Controller
         catch (Exception ex)
         {
             t.StopTask();
+            /*
             SayErrorLine(ex.Message);
             if (ex.InnerException is not null)
             {
                 SayErrorLine("Inner Exception: {0}", ex.InnerException.Message);
             }
+            */
+            AnsiConsole.WriteException(ex, ExceptionFormats.ShortenEverything);
         }
     }
 
@@ -264,6 +267,7 @@ internal class Controller
                 {"quit", "$$quit$$" }
             };
 
+    static Agent agentManager = new Agent();
     static ModelConversation? activeConversation;
     #endregion
 }
