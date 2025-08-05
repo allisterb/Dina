@@ -17,14 +17,16 @@ public class AgentManager : Runtime
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("testappsettings.json", optional: false, reloadOnChange: true)
             .Build();
-        memory = new Memory(ModelRuntime.Ollama, OllamaModels.Gemma3n_4eb_tools, OllamaModels.Nomic_Embed_Text);
         
+        memory = new Memory(ModelRuntime.Ollama, OllamaModels.Gemma3n_4eb_tools, OllamaModels.Nomic_Embed_Text);
+        sharedState["Config"] = new();
         email = config["Email:User"] ?? throw new ArgumentNullException("Email:User");
         emailpassword = config["Email:Password"] ?? throw new ArgumentNullException("Email:Password"); ;
         emailDisplayName = config["Email:DisplayName"] ?? throw new ArgumentNullException("Email:DisplayName");
         me = config["Email:ManagerEmail"] ?? throw new ArgumentNullException("Email:DisplayName");
         homedir = config["Files:HomeDir"] ?? throw new ArgumentNullException("Files:HomeDir");
         kbdir = config["Files:KBDir"] ?? throw new ArgumentNullException("Files:KBDir");
+        sharedState["Config"]["ManagerEmail"] = me;
     }
 
     public async Task IndexKBAsync()

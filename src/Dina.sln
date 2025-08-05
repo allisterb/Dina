@@ -59,8 +59,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{08BC
 	ProjectSection(SolutionItems) = preProject
 		..\build = ..\build
 		..\dina = ..\dina
+		..\scripts\docvqa_dataset.py = ..\scripts\docvqa_dataset.py
 		..\scripts\finetune_gemma3n_docvqa.py = ..\scripts\finetune_gemma3n_docvqa.py
 		..\scripts\gemma3n_e4b_tools.modelfile = ..\scripts\gemma3n_e4b_tools.modelfile
+		..\scripts\ollama_create_model.bat = ..\scripts\ollama_create_model.bat
 	EndProjectSection
 EndProject
 Global
