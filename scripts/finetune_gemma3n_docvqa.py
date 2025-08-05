@@ -12,7 +12,7 @@ torch._dynamo.config.cache_size_limit = 64  # or higher
 
 
 model, processor = FastVisionModel.from_pretrained(
-    "unsloth/gemma-3n-E2B-it",
+    "unsloth/gemma-3n-E4B-it",
     load_in_4bit = True, # Use 4bit to reduce memory use. False for 16bit LoRA.
     use_gradient_checkpointing = "unsloth", # True or "unsloth" for long context
 )
@@ -39,59 +39,59 @@ model = FastVisionModel.get_peft_model(
 )
 
 from datasets import load_dataset
+dataset = load_dataset("pixparse/docvqa-single-page-questions", split="train")
 
-dataset = load_dataset("unsloth/Radiology_mini", split="train")
+def eval_original_dataset():
+    FastVisionModel.for_inference(model)  # Enable for inference!
 
-instruction = "You are an expert radiologist. Describe accurately what you see in this image."
+    image = dataset[20]["image"]
+    instruction = dataset[20]["question"]
+
+    messages = [
+        {
+            "role": "user",
+            "content": [{"type": "image"}, {"type": "text", "text": instruction}],
+        }
+    ]
+    input_text = processor.apply_chat_template(messages, add_generation_prompt=True)
+
+    # Convert grayscale image to RGB
+    if image.mode == 'L':
+        image = image.convert('RGB')
+
+
+    inputs = processor(
+        image,
+        input_text,
+        add_special_tokens=False,
+        return_tensors="pt",
+    ).to("cuda")
+
+    from transformers import TextStreamer
+
+    text_streamer = TextStreamer(processor, skip_prompt=True)
+    model.generate(**inputs, streamer = text_streamer, max_new_tokens = 256,
+                            use_cache=True, temperature = 1.0, top_p = 0.95, top_k = 64)
+
+
+eval_original_dataset()
+exit()
 
 def convert_to_conversation(sample):
     conversation = [
         {
             "role": "user",
             "content": [
-                {"type": "text", "text": instruction},
+                {"type": "text", "text": sample['question']},
                 {"type": "image", "image": sample["image"]},
             ],
         },
-        {"role": "assistant", "content": [{"type": "text", "text": sample["caption"]}]},
+        {"role": "assistant", "content": [{"type": "text", "text": sample["answers"][0]}]},
     ]
     return {"messages": conversation}
 
-converted_dataset = [convert_to_conversation(sample) for sample in dataset]
 
-print(converted_dataset[20])
-
-FastVisionModel.for_inference(model)  # Enable for inference!
-
-image = dataset[20]["image"]
-instruction = "You are an expert radiologist. Describe accurately what you see in this image."
-
-messages = [
-    {
-        "role": "user",
-        "content": [{"type": "image"}, {"type": "text", "text": instruction}],
-    }
-]
-input_text = processor.apply_chat_template(messages, add_generation_prompt=True)
-
-# Convert grayscale image to RGB
-if image.mode == 'L':
-    image = image.convert('RGB')
-
-
-inputs = processor(
-    image,
-    input_text,
-    add_special_tokens=False,
-    return_tensors="pt",
-).to("cuda")
-
-from transformers import TextStreamer
-
-# Eval original model
-# text_streamer = TextStreamer(processor, skip_prompt=True)
-# result = model.generate(**inputs, streamer = text_streamer, max_new_tokens = 256,
-#                        use_cache=True, temperature = 1.0, top_p = 0.95, top_k = 64)
+converted_dataset = [convert_to_conversation(sample) for sample in dataset[:1000]]
 
 from unsloth.trainer import UnslothVisionDataCollator
 from trl import SFTTrainer, SFTConfig

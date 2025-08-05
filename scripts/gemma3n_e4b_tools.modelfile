@@ -18,18 +18,16 @@ You may call one or more functions to assist with the user query. You are provid
 </tools>
 
 If you decide to call any functions you MUST provide all function call invocations as objects using EXACTLY the format:
-{
-"tool_calls":[
+{"tool_calls":[
 	{"function": {"name": <function-name>, "arguments": <arguments-json-object> }}
 ]
 }
 When you call a function, your response MUST be EXACTLY:
-{
-"tool_calls":[
+{"tool_calls":[
 	{"function": {"name": <function-name>, "arguments": <arguments-json-object> }}
 ]
 }
-NO ```json prefix, no markdown ```fences, no extra text and no line break before '{'.
+NO ```json, no markdown ```fence, no extra text, and no line break before {"tool_calls".
 
 You SHOULD NOT include any other text in the response if you call functions. If you call functions then use ONLY the function response to answer queries or request further function calls.
 
@@ -47,8 +45,7 @@ You SHOULD NOT include any function call message When you do not call any functi
   {{ else if eq .Role "assistant" }}
 <start_of_turn>model
 {{- if .ToolCalls }}
-{
-"tool_calls":[
+{"tool_calls":[
 {{- range .ToolCalls }}
 	{"function": {"name": "{{ .Function.Name }}", "arguments": {{ .Function.Arguments }} }}
 {{- end }}
@@ -81,4 +78,4 @@ You SHOULD NOT include any function call message When you do not call any functi
 {{ .Response }}{{ if .Response }}<end_of_turn>{{ end }}
 {{- end }}"""
 
-PARAMETER temperature 0.1
+PARAMETER temperature 1.0
