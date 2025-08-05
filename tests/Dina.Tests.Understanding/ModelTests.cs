@@ -34,7 +34,7 @@ namespace Dina.Tests.Understanding
         [Fact]
         public async Task CanStartOllamaGemini3nChat()
         {
-            var mc = new ModelConversation(model: OllamaModels.Gemma3n_2eb_tools);
+            var mc = new ModelConversation(model: OllamaModels.Gemma3n_4eb_tools);
             var resp = mc.Prompt("What kind of image is this?", File.ReadAllBytes("C:\\Users\\Allister\\Pictures\\applogo.png"), "image/png");
             string s = "";
             Assert.NotNull(resp);

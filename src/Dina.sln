@@ -60,7 +60,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{08BC
 		..\build = ..\build
 		..\dina = ..\dina
 		..\scripts\finetune_gemma3n_docvqa.py = ..\scripts\finetune_gemma3n_docvqa.py
-		..\scripts\gemma3n_e2b_tools.modelfile = ..\scripts\gemma3n_e2b_tools.modelfile
+		..\scripts\gemma3n_e4b_tools.modelfile = ..\scripts\gemma3n_e4b_tools.modelfile
 	EndProjectSection
 EndProject
 Global

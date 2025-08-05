@@ -17,7 +17,7 @@ public class AgentManager : Runtime
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("testappsettings.json", optional: false, reloadOnChange: true)
             .Build();
-        memory = new Memory(ModelRuntime.Ollama, OllamaModels.Gemma3n_2eb_tools, OllamaModels.Nomic_Embed_Text);
+        memory = new Memory(ModelRuntime.Ollama, OllamaModels.Gemma3n_4eb_tools, OllamaModels.Nomic_Embed_Text);
         
         email = config["Email:User"] ?? throw new ArgumentNullException("Email:User");
         emailpassword = config["Email:Password"] ?? throw new ArgumentNullException("Email:Password"); ;
@@ -72,8 +72,7 @@ public class AgentManager : Runtime
     string[] systemPrompts = [
         "You are Dina, a document intelligence agent that assists blind users with getting information from printed and electronic documents and using this information to interface with different business systems and processes. " +
         "Your users are employees who are vision-impaired so keep your answers as short and precise as possible." +
-        "Use ONLY the provided tools to answer the user's queries and carry out actions they requested." +
-        "If you don't know the answer to a question then just let the user know."
+        "Use ONLY the provided tools to answer the user's queries and carry out actions they requested." 
         ];
 
     string email, emailpassword, emailDisplayName, me, homedir, kbdir;

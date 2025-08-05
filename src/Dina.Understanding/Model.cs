@@ -30,18 +30,17 @@ public static class OllamaModels
     #region Constants
     public const string Gemma3_4b_it_q4_K_M = "gemma3:4b-it-q4_K_M";
     public const string Gemma3n_2eb = "gemma3n:e2b";
-    public const string Gemma3n_2eb_tools = "gemma3n:e2b_tools_test";
+    public const string Gemma3n_4eb_tools = "gemma3n:e4b_tools_test";
     public const string Gemma3_4b = "gemma3:4b";
     public const string Nomic_Embed_Text = "nomic-embed-text";
     public const string All_MiniLm = "all-minilm";
     #endregion
-
 }
 
 public class ModelConversation : Runtime
 {
     #region Constructors
-    public ModelConversation(ModelRuntime runtimeType = ModelRuntime.Ollama, string model = OllamaModels.Gemma3n_2eb_tools, string runtimePath = "http://localhost:11434", string[]? systemPrompts = null)
+    public ModelConversation(ModelRuntime runtimeType = ModelRuntime.Ollama, string model = OllamaModels.Gemma3n_4eb_tools, string runtimePath = "http://localhost:11434", string[]? systemPrompts = null)
     {
         this.runtimeType = runtimeType;
         this.runtimePath = runtimePath;
