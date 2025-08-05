@@ -38,7 +38,6 @@ internal class Program : Runtime
         AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
         System.Console.OutputEncoding = System.Text.Encoding.UTF8;
         System.Console.InputEncoding = System.Text.Encoding.UTF8;
-        AnsiConsole.Markup("[green]Loading Dina...[/]");
         AnsiConsole.Clear();
         Controller.Start();
     }

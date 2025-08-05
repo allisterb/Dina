@@ -41,11 +41,11 @@ internal class Controller
 
     internal static void Start()
     {
-       
         ReadLine.HistoryEnabled = true;
         if (beeperOn) StopBeeper();
         SetDefaultPrompt();
         SayInfoLine("Welcome to Dina. Press F1 or type help at anytime to get help on what you are doing. Press ESC or type quit to quit.");
+        WaitForTaskToComplete(agentManager.IndexKBAsync(), "Indexing knowledge base");
         Prompt();
     }
 
@@ -85,10 +85,6 @@ internal class Controller
         }
         try
         {
-            if (activeConversation is null)
-            {
-                activeConversation = agentManager.StartUserSession();
-            }
             StringBuilder s = new StringBuilder();
             await foreach (var response in activeConversation.Prompt(input))
             {
@@ -159,25 +155,22 @@ internal class Controller
         }
     }
 
-
     internal static void SayInfoLine(string template, params object[] args)
     {
         if (template.Length == 0 || (template.Length == 1 && template[0] == '*')) return;
-        var text = Markup.Escape(string.Format(template, args));
+        var text = Markup.Escape(args.Length == 0 ? template : string.Format(template, args));
         AnsiConsole.MarkupLine($"[lightgoldenrod2_1]{text}[/]");
         AnsiConsole.MarkupLine($"[yellow]{TextToBraille(text)}[/]");
-       
     }
 
     internal static void SayErrorLine(string template, params object[] args)
     {
-        var text = Markup.Escape(string.Format(template, args));
+        var text = Markup.Escape(args.Length == 0 ? template : string.Format(template, args));
         AnsiConsole.MarkupLine($"[red]{text}[/]");
         AnsiConsole.MarkupLine($"[red]{TextToBraille(text)}[/]");
-        AnsiConsole.ResetColors();
     }
 
-    // Translate from https://github.com/vineethsubbaraya/pybraille/blob/main/pybraille/main.py
+    // Translated from https://github.com/vineethsubbaraya/pybraille/blob/main/pybraille/main.py
     internal static string TextToBraille(string textToConvert)
     {
         var characterUnicodes = new Dictionary<char, string>
@@ -236,6 +229,43 @@ internal class Controller
         }
         return sb.ToString();
     }
+
+    public static void WaitForTaskToComplete(Task task, string? desc = null)
+    {
+        ProgressColumn[] columns = desc is not null ? 
+            [new SpinnerColumn(Spinner.Known.Dots), new TaskDescriptionColumn()] : 
+            [new SpinnerColumn(Spinner.Known.Dots)];
+        AnsiConsole.Progress()
+            .AutoRefresh(true)
+            .AutoClear(true)
+            .Columns(columns)
+            .Start(ctx =>
+            {
+                inputEnabled = false;
+                var t = ctx.AddTask(desc + "...");
+                task.Wait();
+                t.StopTask();
+            });
+    }
+
+    public static T WaitForTaskToComplete<T>(Task<T> task, string? desc = null)
+    {
+        ProgressColumn[] columns = desc is not null ?
+            [new SpinnerColumn(Spinner.Known.Dots), new TaskDescriptionColumn()] :
+            [new SpinnerColumn(Spinner.Known.Dots)];
+        AnsiConsole.Progress()
+            .AutoRefresh(true)
+            .AutoClear(true)
+            .Columns(columns)
+            .Start(ctx =>
+            {
+                inputEnabled = false;
+                var t = ctx.AddTask(desc + "...");
+                task.Wait();
+                t.StopTask();
+            });
+        return task.Result;
+    }
     #endregion
 
     #region Fields
@@ -268,7 +298,8 @@ internal class Controller
             };
 
     static AgentManager agentManager = new AgentManager();
-    static AgentConversation? activeConversation;
+    
+    static AgentConversation activeConversation =  agentManager.StartUserSession();
     #endregion
 }
 

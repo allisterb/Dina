@@ -20,12 +20,8 @@ public class Memory : Runtime
         this.ollamaconfig = new OllamaConfig()
         {
             Endpoint = endpoint,
-            TextModel = new OllamaModelConfig() { 
-                ModelName = textmodel,
-            },
-            EmbeddingModel = new OllamaModelConfig() { 
-                ModelName = embeddingmodel,
-            }
+            TextModel = new OllamaModelConfig(textmodel, 32 * 1024),
+            EmbeddingModel = new OllamaModelConfig(embeddingmodel, 2048)
         };
 
         var builder = new KernelMemoryBuilder();
@@ -39,7 +35,7 @@ public class Memory : Runtime
             .WithOllamaTextGeneration(ollamaconfig, new CL100KTokenizer())   
             .WithOllamaTextEmbeddingGeneration(ollamaconfig, new CL100KTokenizer())            
             .Build<MemoryServerless>();
-        this.plugin = new MemoryPlugin(memory, waitForIngestionToComplete: false);
+        this.plugin = new MemoryPlugin(memory, waitForIngestionToComplete: true, defaultIndex: "KB");
     }
 
     public async Task<Result<string>> ImportTextAsync(string text, string id, string index)
@@ -55,9 +51,9 @@ public class Memory : Runtime
         => await ExecuteAsync(memory.SearchAsync(query, index: index), "Query \"{0}\" of index {1} returned {2} results", "", (r) => r.Results.Count.ToString(), query, index);
 
     #region Fields
+    public readonly MemoryPlugin plugin;
     readonly ModelRuntime modelRuntime;
     IKernelMemory memory;
-    public readonly MemoryPlugin plugin;
     readonly OllamaConfig ollamaconfig;  
     
     #endregion

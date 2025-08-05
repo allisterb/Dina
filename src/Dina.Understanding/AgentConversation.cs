@@ -84,8 +84,6 @@ public class AgentConversation : ModelConversation
         }
     }
 
-   
-
     public async Task TestAgent()
     {
         // Create an embedding generator for function vectorization

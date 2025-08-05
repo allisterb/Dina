@@ -11,50 +11,59 @@ using System.Threading.Tasks;
 
 public class AgentManager : Runtime
 {
-    public List<AgentConversation> Conversations = new List<AgentConversation>();
-
-    public Dictionary<string, Dictionary<string, object>> SharedState { get; } = new()
-    {
-        { "Agent", new() }
-    };
-
     public AgentManager()
     {
         config = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("testappsettings.json", optional: false, reloadOnChange: true)
             .Build();
-        memory = new Memory(ModelRuntime.Ollama, OllamaModels.Gemma3n_2eb_tools, OllamaModels.All_MiniLm);
-        useremail = config["Email:User"] ?? throw new ArgumentNullException("Email:User");
-        useremailpassword = config["Email:Password"] ?? throw new ArgumentNullException("Email:Password"); ;
+        memory = new Memory(ModelRuntime.Ollama, OllamaModels.Gemma3n_2eb_tools, OllamaModels.Nomic_Embed_Text);
+        
+        email = config["Email:User"] ?? throw new ArgumentNullException("Email:User");
+        emailpassword = config["Email:Password"] ?? throw new ArgumentNullException("Email:Password"); ;
         emailDisplayName = config["Email:DisplayName"] ?? throw new ArgumentNullException("Email:DisplayName");
         me = config["Email:ManagerEmail"] ?? throw new ArgumentNullException("Email:DisplayName");
-        homedir = config["Files:HomeDir"] ?? throw new ArgumentNullException("Email:HomeDir");
-       
+        homedir = config["Files:HomeDir"] ?? throw new ArgumentNullException("Files:HomeDir");
+        kbdir = config["Files:KBDir"] ?? throw new ArgumentNullException("Files:KBDir");
+    }
+
+    public async Task IndexKBAsync()
+    {
+        var op = Begin("Indexing documents in KB dir {0}.", kbdir);
+
+        /*
+        foreach (var file in Directory.EnumerateFiles(homedir))
+        {
+            var text = await Documents.GetDocumentText(file);
+            if (!string.IsNullOrEmpty(text))
+            {
+                await memory.plugin.SaveAsync(text, index:"home");
+            }
+        }*/
+        await memory.plugin.SaveAsync("All employees must wash hands after meals.");
+        op.Complete();
     }
 
     public AgentConversation StartUserSession()
     {
-        var op = Begin("Indexing documents in home dir {0}.", homedir);
-        Task.Run(async () =>
-        {
-            foreach (var file in Directory.EnumerateFiles(homedir))
-            {
-                var text = await Documents.GetDocumentText(file);
-                if (!string.IsNullOrEmpty(text))
-                await memory.ImportTextAsync(text, file, "home");
-            }
-        }).Wait();
         var c = new AgentConversation("The user has just started the Dina program. You must help them get acclimated and answer any questions about Dina they may have.", "Startup Agent", plugins: [           
-            (new StatePlugin() {SharedState = SharedState}, "State"),
-            (new MailPlugin(useremail, useremailpassword, emailDisplayName) {SharedState = SharedState}, "Mail"),
-            (new DocumentsPlugin(){SharedState = SharedState}, "Documents"),
-            (new FilesPlugin(homedir) {SharedState = SharedState}, "Files"),
+            (new StatePlugin() {SharedState = sharedState}, "State"),
+            (new MailPlugin(email, emailpassword, emailDisplayName) {SharedState = sharedState}, "Mail"),
+            (new DocumentsPlugin(){SharedState = sharedState}, "Documents"),
+            (new FilesPlugin(homedir) {SharedState = sharedState}, "Files"),
         ],
         systemPrompts: systemPrompts);
-        c.AddPlugin(memory.plugin, "memory");
+        c.AddPlugin(memory.plugin, "KnowledgeBase");
         return c;
     }
+
+    #region Fields
+    public Dictionary<string, Dictionary<string, object>> sharedState = new()
+    {
+        { "Agent", new() }
+    };
+
+    public List<AgentConversation> conversations = new List<AgentConversation>();
 
     Memory memory;
 
@@ -67,6 +76,7 @@ public class AgentManager : Runtime
         "If you don't know the answer to a question then just let the user know."
         ];
 
-    string useremail, useremailpassword, emailDisplayName, me, homedir;
+    string email, emailpassword, emailDisplayName, me, homedir, kbdir;
+    #endregion
 }
 
