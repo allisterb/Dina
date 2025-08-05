@@ -14,12 +14,12 @@ using static Result;
 
 public class Memory : Runtime
 {
-    public Memory(ModelRuntime modelRuntime, string textmodel, string embeddingmodel, string llamapath = "http://localhost:11434")
+    public Memory(ModelRuntime modelRuntime, string textmodel, string embeddingmodel, string endpoint = "http://localhost:11434")
     {
         this.modelRuntime = modelRuntime;
         this.ollamaconfig = new OllamaConfig()
         {
-            Endpoint = llamapath,
+            Endpoint = endpoint,
             TextModel = new OllamaModelConfig() { 
                 ModelName = textmodel,
             },
@@ -34,15 +34,19 @@ public class Memory : Runtime
             .AddProvider(loggerProvider)
             .SetMinimumLevel(LogLevel.Trace));
         
-        memory =
+        this.memory =
             builder
             .WithOllamaTextGeneration(ollamaconfig, new CL100KTokenizer())   
             .WithOllamaTextEmbeddingGeneration(ollamaconfig, new CL100KTokenizer())            
             .Build<MemoryServerless>();
+        this.plugin = new MemoryPlugin(memory, waitForIngestionToComplete: false);
     }
 
+    public async Task<Result<string>> ImportTextAsync(string text, string id, string index)
+        => await ExecuteAsync(memory.ImportTextAsync(text, index: index, documentId: id), "Imported document id {0} to index {1}.", val: r => r, args:index);
+
     public async Task<Result<string>> ImportAsync(string path, string index) 
-        => await ExecuteAsync(memory.ImportDocumentAsync(path, index: index), "Imported document {0} to index {1} with id {2}.",
+        => await ExecuteAsync(memory.ImportDocumentAsync(path, index: index, documentId:path), "Imported document {0} to index {1} with id {2}.",
             "Failed to import document {0} to index {1}.", r => r, path, index);
     
     public IAsyncEnumerable<MemoryAnswer> AskAsync(string question, string index) => memory.AskStreamingAsync(question, index:index);
@@ -53,6 +57,8 @@ public class Memory : Runtime
     #region Fields
     readonly ModelRuntime modelRuntime;
     IKernelMemory memory;
+    public readonly MemoryPlugin plugin;
     readonly OllamaConfig ollamaconfig;  
+    
     #endregion
 }

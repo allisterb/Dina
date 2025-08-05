@@ -1,22 +1,21 @@
 ﻿namespace Dina;
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+using Microsoft.Extensions.Logging;
 using NAPS2.Images;
 using NAPS2.Images.ImageSharp;
 using NAPS2.Scan;
+using OpenCvSharp;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Processing;
-
-using OpenCvSharp;
-
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using static Dina.Result;
 
 public class Documents : Runtime
@@ -185,8 +184,60 @@ public class Documents : Runtime
         }
     }
 
-    public static async Task<Result<string>> OcrImageAsync(string filepath) => await OcrImageAsync(File.ReadAllBytes(filepath));  
-}
+    public static async Task<Result<string>> OcrImageAsync(string filepath) => await OcrImageAsync(File.ReadAllBytes(filepath));
+
+    
+    public static async Task<string> GetDocumentText(string filePath)
+    {
+        try
+        {
+            var file = new FileInfo(filePath);
+            if (!file.Exists)
+            {
+                Error("File does not exist: {FilePath}", filePath);
+                return "";
+            }
+
+            string ext = file.Extension.ToLowerInvariant();
+            if (ext == ".pdf")
+            {
+                var result = Documents.ConvertPdfToText(file.FullName);
+                if (result.IsSuccess)
+                {
+                    return string.Join("\n", result.Value);
+                }
+                else
+                {
+                    //Error(result.Message, result.Exception);
+                    return "";
+                }
+            }
+            else if (ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".bmp" || ext == ".tiff")
+            {
+                var result = await OcrImageAsync(file.FullName);
+                if (result.IsSuccess)
+                {
+                    return result.Value;
+                }
+                else
+                {
+                    //Error(result.Exception, result.Message);
+                    return "";
+                }
+            }
+            else
+            {
+                Error("Unsupported file type: {FilePath}", filePath);
+                return "";
+            }
+        }
+        catch (Exception ex)
+        {
+            Error(ex, "Error getting document text for {FilePath}", filePath);
+            return "";
+        }
+    }
+    }
 
 
     
