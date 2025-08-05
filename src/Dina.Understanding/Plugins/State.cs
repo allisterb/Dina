@@ -1,13 +1,13 @@
 ﻿namespace Dina;
 
-using DocumentFormat.OpenXml.Drawing;
-using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+
+using Microsoft.Extensions.Logging;
+using Microsoft.SemanticKernel;
 
 using static Result;
 

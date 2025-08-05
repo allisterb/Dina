@@ -45,10 +45,9 @@ internal class Controller
         if (beeperOn) StopBeeper();
         SetDefaultPrompt();
         SayInfoLine("Welcome to Dina. Press F1 or type help at anytime to get help on what you are doing. Press ESC or type quit to quit.");
-        WaitForTaskToComplete(agentManager.IndexKBAsync(), "Indexing knowledge base");
+        WaitForTaskToComplete(agentManager.IndexKBAsync(), "Indexing knowledge base", false);
         Prompt();
     }
-
 
     internal static void Prompt()
     {
@@ -134,13 +133,6 @@ internal class Controller
         catch (Exception ex)
         {
             t.StopTask();
-            /*
-            SayErrorLine(ex.Message);
-            if (ex.InnerException is not null)
-            {
-                SayErrorLine("Inner Exception: {0}", ex.InnerException.Message);
-            }
-            */
             AnsiConsole.WriteException(ex, ExceptionFormats.ShortenEverything);
         }
     }
@@ -230,14 +222,14 @@ internal class Controller
         return sb.ToString();
     }
 
-    public static void WaitForTaskToComplete(Task task, string? desc = null)
+    public static void WaitForTaskToComplete(Task task, string? desc = null, bool clear = true )
     {
         ProgressColumn[] columns = desc is not null ? 
             [new SpinnerColumn(Spinner.Known.Dots), new TaskDescriptionColumn()] : 
             [new SpinnerColumn(Spinner.Known.Dots)];
         AnsiConsole.Progress()
             .AutoRefresh(true)
-            .AutoClear(true)
+            .AutoClear(clear)
             .Columns(columns)
             .Start(ctx =>
             {
@@ -248,14 +240,14 @@ internal class Controller
             });
     }
 
-    public static T WaitForTaskToComplete<T>(Task<T> task, string? desc = null)
+    public static T WaitForTaskToComplete<T>(Task<T> task, string? desc = null, bool clear = true)
     {
         ProgressColumn[] columns = desc is not null ?
             [new SpinnerColumn(Spinner.Known.Dots), new TaskDescriptionColumn()] :
             [new SpinnerColumn(Spinner.Known.Dots)];
         AnsiConsole.Progress()
             .AutoRefresh(true)
-            .AutoClear(true)
+            .AutoClear(clear)
             .Columns(columns)
             .Start(ctx =>
             {

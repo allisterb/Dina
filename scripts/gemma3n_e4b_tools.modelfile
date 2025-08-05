@@ -78,4 +78,4 @@ You SHOULD NOT include any function call message When you do not call any functi
 {{ .Response }}{{ if .Response }}<end_of_turn>{{ end }}
 {{- end }}"""
 
-PARAMETER temperature 1.0
+PARAMETER temperature 0.1

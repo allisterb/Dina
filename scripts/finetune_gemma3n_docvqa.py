@@ -5,66 +5,54 @@
 #from huggingface_hub import login
 #login()
 
-from unsloth import FastVisionModel # FastLanguageModel for LLMs
+import pytesseract
+from unsloth import FastVisionModel, FastModel 
+import random
 
 import torch._dynamo 
 torch._dynamo.config.cache_size_limit = 64  # or higher  
 
-
-model, processor = FastVisionModel.from_pretrained(
-    "unsloth/gemma-3n-E4B-it",
-    load_in_4bit = True, # Use 4bit to reduce memory use. False for 16bit LoRA.
-    use_gradient_checkpointing = "unsloth", # True or "unsloth" for long context
-)
-
-model = FastVisionModel.get_peft_model(
-    model,
-    finetune_vision_layers     = True, # False if not finetuning vision layers
-    finetune_language_layers   = True, # False if not finetuning language layers
-    finetune_attention_modules = True, # False if not finetuning attention layers
-    finetune_mlp_modules       = True, # False if not finetuning MLP layers
-
-    r = 16,                           # The larger, the higher the accuracy, but might overfit
-    lora_alpha = 16,                  # Recommended alpha == r at least
-    lora_dropout = 0,
-    bias = "none",
-    random_state = 3407,
-    use_rslora = False,               # We support rank stabilized LoRA
-    loftq_config = None,               # And LoftQ
-    target_modules = "all-linear",    # Optional now! Can specify a list if needed
-    modules_to_save=[
-        "lm_head",
-        "embed_tokens",
-    ],
+model, tokenizer = FastVisionModel.from_pretrained(
+    model_name = "unsloth/gemma-3n-E4B-it",
+    dtype = None, # None for auto detection
+    max_seq_length = 4096, # Choose any for long context!
+    load_in_4bit = True,  # 4 bit quantization to reduce memory
+    full_finetuning = False, # [NEW!] We have full finetuning now!
+    # token = "hf_...", # use one if using gated models
 )
 
 from datasets import load_dataset
-dataset = load_dataset("pixparse/docvqa-single-page-questions", split="train")
+invoices_dataset =load_dataset("katanaml-org/invoices-donut-data-v1", split="train")
+vmrc_dataset = load_dataset("NTT-hil-insight/VisualMRC", split="train")
 
-def eval_original_dataset():
-    FastVisionModel.for_inference(model)  # Enable for inference!
+from unsloth import get_chat_template
+processor = get_chat_template(
+    tokenizer,
+    "gemma-3n"
+)
 
-    image = dataset[20]["image"]
-    instruction = dataset[20]["question"]
+FastVisionModel.for_inference(model) 
 
+def compare(dataset, sample_index, image_key, instruction, gt_key):
+    
+    sample = dataset[sample_index]
+    image = sample[image_key]
+    instruction = instruction
+
+    print(f"Gemma 3n instruction '{instruction}'on OCR text input...")
     messages = [
         {
             "role": "user",
-            "content": [{"type": "image"}, {"type": "text", "text": instruction}],
+            "content": [{"type": "text", "text":pytesseract.image_to_string(image, config='--oem 1 --psm 1')}, {"type": "text", "text": instruction}],
         }
     ]
-    input_text = processor.apply_chat_template(messages, add_generation_prompt=True)
 
-    # Convert grayscale image to RGB
-    if image.mode == 'L':
-        image = image.convert('RGB')
-
-
-    inputs = processor(
-        image,
-        input_text,
-        add_special_tokens=False,
-        return_tensors="pt",
+    inputs = tokenizer.apply_chat_template(
+        messages,
+        add_generation_prompt = True, # Must add for generation
+        return_tensors = "pt",
+        tokenize = True,
+        return_dict = True,
     ).to("cuda")
 
     from transformers import TextStreamer
@@ -73,9 +61,54 @@ def eval_original_dataset():
     model.generate(**inputs, streamer = text_streamer, max_new_tokens = 256,
                             use_cache=True, temperature = 1.0, top_p = 0.95, top_k = 64)
 
+    print("Gemma 3N on image input...")
 
-eval_original_dataset()
+    messages = [
+       {
+           "role": "user",
+           "content": [{"type": "image"}, {"type": "text", "text": instruction}],
+       }
+    ]
+    input_text = processor.apply_chat_template(messages, add_generation_prompt=True)
+
+   # Convert grayscale image to RGB
+    if image.mode == 'L':
+       image = image.convert('RGB')
+
+    inputs = processor(
+       image,
+       input_text,
+       add_special_tokens=False,
+       return_tensors="pt",
+    ).to("cuda")
+
+
+    text_streamer = TextStreamer(processor, skip_prompt=True)
+    model.generate(**inputs, streamer = text_streamer, max_new_tokens = 256,
+                           use_cache=True, temperature = 1.0, top_p = 0.95, top_k = 64)
+
+    print("Dataset ground truth...")
+
+    print(dataset[sample_index][gt_key])
+    
+#compare(invoices_dataset, 16, "image", "gt_parse", "Extract all information as JSON from this invoice.")
+
+compare(vmrc_dataset, 16, "image", vmrc_dataset[16]["question"], "answer")
 exit()
+
+model = FastModel.get_peft_model(
+    model,
+    finetune_vision_layers     = False, # Turn off for just text!
+    finetune_language_layers   = True,  # Should leave on!
+    finetune_attention_modules = True,  # Attention good for GRPO
+    finetune_mlp_modules       = True,  # SHould leave on always!
+
+    r = 8,           # Larger = higher accuracy, but might overfit
+    lora_alpha = 8,  # Recommended alpha == r at least
+    lora_dropout = 0,
+    bias = "none",
+    random_state = 3407,
+)
 
 def convert_to_conversation(sample):
     conversation = [

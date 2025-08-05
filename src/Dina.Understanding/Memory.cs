@@ -35,9 +35,32 @@ public class Memory : Runtime
             .WithOllamaTextGeneration(ollamaconfig, new CL100KTokenizer())   
             .WithOllamaTextEmbeddingGeneration(ollamaconfig, new CL100KTokenizer())            
             .Build<MemoryServerless>();
-        this.plugin = new MemoryPlugin(memory, waitForIngestionToComplete: true, defaultIndex: "KB");
+        this.plugin = new MemoryPlugin(memory, waitForIngestionToComplete: false, defaultIndex: "kb");
     }
 
+    public async Task<Result<int>> CreateKB(string path)
+    {
+        kbindex.Clear();
+        foreach (var file in Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories))
+        {
+            var text = await Documents.GetDocumentText(file);
+            if (!string.IsNullOrEmpty(text))
+            {
+                var id = file.GetHashCode();
+                kbindex.Add(id, file);
+                await memory.ImportTextAsync(text, id.ToString(), index: "kb");
+            }
+        }
+        if (kbindex.Count > 0)
+        {
+            return Success(kbindex.Count);
+        }
+        else
+        {
+            return Failure<int>("Did not import any files from knowledge base.");
+        }
+    }
+    /*
     public async Task<Result<string>> ImportTextAsync(string text, string id, string index)
         => await ExecuteAsync(memory.ImportTextAsync(text, index: index, documentId: id), "Imported document id {0} to index {1}.", val: r => r, args:index);
 
@@ -49,12 +72,12 @@ public class Memory : Runtime
 
     public async Task<Result<SearchResult>> SearchAsync(string query, string index) 
         => await ExecuteAsync(memory.SearchAsync(query, index: index), "Query \"{0}\" of index {1} returned {2} results", "", (r) => r.Results.Count.ToString(), query, index);
-
+    */
     #region Fields
     public readonly MemoryPlugin plugin;
+    Dictionary<int, string> kbindex = new Dictionary<int, string>();
     readonly ModelRuntime modelRuntime;
     IKernelMemory memory;
     readonly OllamaConfig ollamaconfig;  
-    
     #endregion
 }

@@ -189,55 +189,45 @@ public class Documents : Runtime
     
     public static async Task<string> GetDocumentText(string filePath)
     {
-        try
+        var file = new FileInfo(filePath);
+        if (!file.Exists)
         {
-            var file = new FileInfo(filePath);
-            if (!file.Exists)
-            {
-                Error("File does not exist: {FilePath}", filePath);
-                return "";
-            }
+            Error("File does not exist: {FilePath}", filePath);
+            return "";
+        }
 
-            string ext = file.Extension.ToLowerInvariant();
-            if (ext == ".pdf")
+        string ext = file.Extension.ToLowerInvariant();
+        if (ext == ".pdf")
+        {
+            var result = ConvertPdfToText(file.FullName);
+            if (result.IsSuccess)
             {
-                var result = Documents.ConvertPdfToText(file.FullName);
-                if (result.IsSuccess)
-                {
-                    return string.Join("\n", result.Value);
-                }
-                else
-                {
-                    //Error(result.Message, result.Exception);
-                    return "";
-                }
-            }
-            else if (ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".bmp" || ext == ".tiff")
-            {
-                var result = await OcrImageAsync(file.FullName);
-                if (result.IsSuccess)
-                {
-                    return result.Value;
-                }
-                else
-                {
-                    //Error(result.Exception, result.Message);
-                    return "";
-                }
+                return string.Join("\n", result.Value);
             }
             else
             {
-                Error("Unsupported file type: {FilePath}", filePath);
                 return "";
             }
         }
-        catch (Exception ex)
+        else if (ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".bmp" || ext == ".tiff")
         {
-            Error(ex, "Error getting document text for {FilePath}", filePath);
+            var result = await OcrImageAsync(file.FullName);
+            if (result.IsSuccess)
+            {
+                return result.Value;
+            }
+            else
+            {
+                return "";
+            }
+        }
+        else
+        {
+            Error("Unsupported file type: {FilePath}", filePath);
             return "";
         }
     }
-    }
+}
 
 
     
