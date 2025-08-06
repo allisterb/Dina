@@ -27,6 +27,7 @@ public class AgentManager : Runtime
         homedir = config["Files:HomeDir"] ?? throw new ArgumentNullException("Files:HomeDir");
         kbdir = config["Files:KBDir"] ?? throw new ArgumentNullException("Files:KBDir");
         sharedState["Config"]["ManagerEmail"] = me;
+        sharedState["Config"]["HomeDir"] = homedir;
     }
 
     public async Task CreateKBAsync()
@@ -38,13 +39,16 @@ public class AgentManager : Runtime
 
     public AgentConversation StartUserSession()
     {
-        var c = new AgentConversation("The user has just started the Dina program. You must help them get acclimated and answer any questions about Dina they may have.", "Startup Agent", plugins: [           
-            (new StatePlugin() {SharedState = sharedState}, "State"),
-            (new MailPlugin(email, emailpassword, emailDisplayName) {SharedState = sharedState}, "Mail"),
+        var c = new AgentConversation("The user has just started the Dina program. You must help them get acclimated and answer any questions about Dina they may have.", "Startup Agent", plugins: [
+            //(new StatePlugin() {SharedState = sharedState}, "State"),
+            //(new MailPlugin(email, emailpassword, emailDisplayName) {SharedState = sharedState}, "Mail"),
             (new DocumentsPlugin(){SharedState = sharedState}, "Documents"),
-            (new FilesPlugin(homedir) {SharedState = sharedState}, "Files"),
+            //(new FilesPlugin(homedir) {SharedState = sharedState}, "Files"),
         ],
-        systemPrompts: systemPrompts);
+        systemPrompts: systemPrompts)
+        {
+            SharedState = sharedState 
+        };
         c.AddPlugin(memory.plugin, "memory");
         return c;
     }
@@ -62,9 +66,9 @@ public class AgentManager : Runtime
     IConfigurationRoot config;
 
     string[] systemPrompts = [
-        "You are Dina, a document intelligence agent that assists blind users with getting information from printed and electronic documents and using this information to interface with different business systems and processes. " +
+        "You are working for Dina, a document intelligence agent that assists blind users with getting information from printed and electronic documents and using this information to interface with different business systems and processes. " +
         "Your users are employees who are vision-impaired so keep your answers as short and precise as possible." +
-        "Use ONLY the provided tools to answer the user's queries and carry out actions they requested." 
+        "Use ONLY the provided tools to answer the user's queries and carry out actions they requested."
         ];
 
     string email, emailpassword, emailDisplayName, me, homedir, kbdir;

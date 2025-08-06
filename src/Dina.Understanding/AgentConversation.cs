@@ -3,6 +3,7 @@
 using Microsoft.Extensions.AI;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
+using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.InMemory;
 using Microsoft.SemanticKernel.Functions;
 
@@ -30,11 +31,6 @@ public class AgentConversation : ModelConversation
             }),
             UseImmutableKernel = immutableKernel,
         };
-        this.sharedState = sharedState ?? new Dictionary<string, Dictionary<string, object>>()
-        {
-            { "Agent", new Dictionary<string, object>() },
-            { "Plugins", new Dictionary<string, object>() }
-        };
         if (plugins is not null && plugins.Length > 0) AddPlugins(plugins);
 
 #pragma warning restore SKEXP0130, SKEXP0001
@@ -58,15 +54,8 @@ public class AgentConversation : ModelConversation
     {
         foreach (var (plugin, pluginName) in plugins)
         {
-            plugin.SharedState = this.sharedState;
             kernel.Plugins.AddFromObject(plugin, pluginName);
         }
-        return this;
-    }
-
-    public AgentConversation SetAgentCapabilities(params string[] capabilities)
-    {
-        sharedState["Agent"]["capabilities"] = capabilities;
         return this;
     }
 
@@ -74,6 +63,15 @@ public class AgentConversation : ModelConversation
     {
         AgentThread? agentThread = null;
         bool hasThreads = agentThreads.TryPeek(out agentThread);
+        if (agentThread is not null)
+        {
+            var chat = (ChatHistoryAgentThread) agentThread;
+            if (chat.ChatHistory.Count > 8)
+            {
+                var ch = new ChatHistory(chat.ChatHistory.TakeLast(3));
+                agentThread = new ChatHistoryAgentThread(ch);
+            }
+        }
         await foreach (var m in agent.InvokeStreamingAsync(string.Format(prompt, args), agentThread))
         {
             if (!hasThreads || (hasThreads && agentThreads.Peek() != m.Thread))
@@ -147,9 +145,11 @@ public class AgentConversation : ModelConversation
     };
         }
     }
+
+    internal Dictionary<string, Dictionary<string, object>> SharedState { get; set; } = new();
+
     #region Fields
     protected ChatCompletionAgent agent;
     protected Stack<AgentThread> agentThreads = new Stack<AgentThread>();
-    public Dictionary<string, Dictionary<string, object>> sharedState;
     #endregion
 }

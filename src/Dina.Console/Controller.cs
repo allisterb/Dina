@@ -44,8 +44,8 @@ internal class Controller
         ReadLine.HistoryEnabled = true;
         if (beeperOn) StopBeeper();
         SetDefaultPrompt();
-        SayInfoLine("Welcome to Dina. Press F1 or type help at anytime to get help on what you are doing. Press ESC or type quit to quit.");
         WaitForTaskToComplete(agentManager.CreateKBAsync(), "Indexing knowledge base", false);
+        SayInfoLine("Welcome to Dina. Press F1 or type help at anytime to get help on what you are doing. Press ESC or type quit to quit.");
         Prompt();
     }
 
@@ -99,6 +99,11 @@ internal class Controller
                         continue;
                     }
                     else continue;
+                }
+                else if (response.Message.Content.Contains("```json") || response.Message.Content.Contains("{\"tool_calls\""))
+                {
+                    if (!t.IsFinished) t.StopTask();
+                    break;
                 }
                 else if (response.Message.Content.Contains("\n"))
                 {

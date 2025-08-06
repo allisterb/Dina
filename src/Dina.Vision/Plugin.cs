@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
 using Microsoft.Extensions.Logging;
@@ -14,26 +15,96 @@ public class DocumentsPlugin : IPlugin
 {
     public Dictionary<string, Dictionary<string, object>> SharedState { get; set; } = new Dictionary<string, Dictionary<string, object>>();
 
-    [KernelFunction, Description("Scan a paper document using an attached scanner and return the text.")]
-    public async Task<string> ScanDocument(ILogger? logger)
+    [KernelFunction, Description("Open a file document at a particular location and set it as the active document.")]
+    public async Task<string> OpenFileDocument(
+        [Description("The file path to open.")] string filePath,
+        ILogger? logger
+    )
+    {
+        string homedir = (string)SharedState["Config"]["HomeDir"];
+        if (File.Exists(filePath) || File.Exists(Path.Combine(homedir, filePath)))
+        {
+            var path = File.Exists(filePath) ? filePath : Path.Combine(homedir, filePath);
+            var text = await Documents.GetDocumentText(path); 
+            if (!string.IsNullOrEmpty(text))
+            {
+                ActiveDocuments.Push((path, text));
+                return $"The following file is now the active file:\nFile path: {path}";
+            }
+            else
+            {
+                return """
+                    The file content could not be read. You can only read certain file types like PDF files, 
+                    MS and OpenOffice documents, and scanned document images. Ask the user if they want to reenter the path
+                    or choose something else to do.
+                    """;
+                    
+            }
+        }
+        else
+        {
+            return $"The file does not exist. Ask the user to enter the path again, or choose something else to do.";
+        }
+    }
+
+
+    [KernelFunction, Description("Scan a document using the attached scanner and set it as the active document.")]
+    public async Task<string> ScanDocument()
     {
         var text = await Documents.ScanTextAsync();
         if (text.IsSuccess)
         {
-            return text.Value;
+            ActiveDocuments.Push(("Scanned_" + DateTime.Now.ToString(), text.Value));
+            return $"The file was scanned and is now the active document.";
         }
         else
         {
-            logger?.LogError(text.Message, text.Exception);
-            return "";
+            //logger?.LogError(text.Message, text.Exception);
+            return "You weren't able to scan the file due to an error. Ask the user if they would like to try again or pick something else to do";
         }
-  
+
+    }
+
+    
+    [KernelFunction, Description("Get the text of the current document.")]
+    public string GetCurrentDocumentText(
+      ILogger? logger
+    )
+    {
+        if (ActiveDocuments.TryPeek(out var document))
+        {
+            return document.Item2;
+        }
+        else
+            return
+                """
+                No document is currently active. Ask the user if they want to enter the path to a document, then open the document at that path.
+                Or ask if they want to do something else.
+                """;
+    }
+    
+    /*
+     *     [KernelFunction, Description("Get the path of the current document.")]
+    public string GetCurrentDocumentPath(
+       ILogger? logger
+   )
+    {
+        if (ActiveDocuments.TryPeek(out var document))
+        {
+            return document.Item1;
+        }
+        else
+            return
+                """
+                No document is currently active. Ask the user if they want to enter the path to a document, then open the document at that path.
+                Or ask if they want to do something else.
+                """;
     }
 
     [KernelFunction, Description("Get all of the text contained in a document file. Supports text, PDF and image files.")]
     public async Task<string> GetDocumentText(
-        [Description("The path to the file")] string filePath,
-        ILogger? logger)
+       [Description("The path to the file")] string filePath,
+       ILogger? logger)
     {
         try
         {
@@ -82,5 +153,12 @@ public class DocumentsPlugin : IPlugin
             logger?.LogError(ex, "Error getting document text for {FilePath}", filePath);
             return "";
         }
+
     }
+    */
+
+   
+   
+
+    public Stack<(string, string)> ActiveDocuments = new Stack<(string, string)>();
 }
