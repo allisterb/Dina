@@ -28,4 +28,8 @@
     <ProjectReference Include="..\Dina.Base\Dina.Base.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Conversations\" />
+  </ItemGroup>
+
 </Project>

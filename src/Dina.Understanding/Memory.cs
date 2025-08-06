@@ -6,9 +6,7 @@ using Microsoft.Extensions.VectorData;
 using Microsoft.KernelMemory;
 using Microsoft.KernelMemory.AI;
 using Microsoft.KernelMemory.AI.Ollama;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Connectors.InMemory;
-using Microsoft.SemanticKernel.Connectors.Ollama;
+using Microsoft.KernelMemory.SemanticKernelPlugin.Internals;
 
 using static Result;
 
@@ -35,10 +33,10 @@ public class Memory : Runtime
             .WithOllamaTextGeneration(ollamaconfig, new CL100KTokenizer())   
             .WithOllamaTextEmbeddingGeneration(ollamaconfig, new CL100KTokenizer())            
             .Build<MemoryServerless>();
-        this.plugin = new MemoryPlugin(memory, waitForIngestionToComplete: false, defaultIndex: "kb");
+        this.plugin = new MemoryPlugin(this, waitForIngestionToComplete: false, defaultIndex: "kb");
     }
 
-    public async Task<Result<int>> CreateKB(string path)
+    public async Task<Result<int>> CreateKBAsync(string path)
     {
         kbindex.Clear();
         foreach (var file in Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories))
@@ -60,6 +58,41 @@ public class Memory : Runtime
             return Failure<int>("Did not import any files from knowledge base.");
         }
     }
+
+    internal async Task<SearchResult> SearchAsync(        
+        string query,
+        string? index = null,
+        double minRelevance = 0,
+        int limit = 1,
+        TagCollectionWrapper? tags = null,
+        CancellationToken cancellationToken = default)
+    {
+        return await this.memory
+            .SearchAsync(
+                query: query,
+                index: index ?? "kb" ,
+                filter: TagsToMemoryFilter(tags),
+                minRelevance: minRelevance,
+                limit: limit,
+                cancellationToken: cancellationToken).ConfigureAwait(false);
+    }
+
+    private static MemoryFilter? TagsToMemoryFilter(TagCollection? tags)
+    {
+        if (tags == null)
+        {
+            return null;
+        }
+
+        var filters = new MemoryFilter();
+
+        foreach (var tag in tags)
+        {
+            filters.Add(tag.Key, tag.Value);
+        }
+
+        return filters;
+    }
     /*
     public async Task<Result<string>> ImportTextAsync(string text, string id, string index)
         => await ExecuteAsync(memory.ImportTextAsync(text, index: index, documentId: id), "Imported document id {0} to index {1}.", val: r => r, args:index);
@@ -77,7 +110,7 @@ public class Memory : Runtime
     public readonly MemoryPlugin plugin;
     Dictionary<int, string> kbindex = new Dictionary<int, string>();
     readonly ModelRuntime modelRuntime;
-    IKernelMemory memory;
+    internal IKernelMemory memory;
     readonly OllamaConfig ollamaconfig;  
     #endregion
 }

@@ -29,23 +29,10 @@ public class AgentManager : Runtime
         sharedState["Config"]["ManagerEmail"] = me;
     }
 
-    public async Task IndexKBAsync()
+    public async Task CreateKBAsync()
     {
         var op = Begin("Indexing documents in KB dir {0}.", kbdir);
-
-        
-        foreach (var file in Directory.EnumerateFiles(kbdir))
-        {
-            
-            var text = await Documents.GetDocumentText(file);
-            if (!string.IsNullOrEmpty(text))
-            {
-                await memory.plugin.SaveAsync(text, Path.GetFileName(file), index:"kb");
-            }
-            
-            //await memory.plugin.SaveFileAsync(file);
-        }
-        await memory.plugin.SaveAsync("All employees must wash hands after meals.", documentId: "help2", index:"kb");
+        await memory.CreateKBAsync(kbdir);
         op.Complete();
     }
 

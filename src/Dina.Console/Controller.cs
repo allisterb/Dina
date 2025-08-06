@@ -45,7 +45,7 @@ internal class Controller
         if (beeperOn) StopBeeper();
         SetDefaultPrompt();
         SayInfoLine("Welcome to Dina. Press F1 or type help at anytime to get help on what you are doing. Press ESC or type quit to quit.");
-        WaitForTaskToComplete(agentManager.IndexKBAsync(), "Indexing knowledge base", false);
+        WaitForTaskToComplete(agentManager.CreateKBAsync(), "Indexing knowledge base", false);
         Prompt();
     }
 
