@@ -1,1 +1,3 @@
 # Dina
+
+Dina is a local-only, open-souce, cross-platform document intelligence agent that allows blind users to effectively navigate, understand, and query electronic and printed documents like letters, receipts, expense reports, invoices, tax forms, employee handbooks, training manuals, and other types of structured business documents which visually impaired employees must work with during their day-to-day activities. 
