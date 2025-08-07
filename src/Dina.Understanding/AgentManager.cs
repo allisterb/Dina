@@ -18,7 +18,7 @@ public class AgentManager : Runtime
             .AddJsonFile("testappsettings.json", optional: false, reloadOnChange: true)
             .Build();
         
-        memory = new Memory(ModelRuntime.Ollama, OllamaModels.Gemma3n_4eb_tools, OllamaModels.Nomic_Embed_Text);
+        memory = new Memory(ModelRuntime.Ollama, OllamaModels.Gemma3n_e4b_tools_test, OllamaModels.Nomic_Embed_Text);
         sharedState["Config"] = new();
         email = config["Email:User"] ?? throw new ArgumentNullException("Email:User");
         emailpassword = config["Email:Password"] ?? throw new ArgumentNullException("Email:Password"); ;
