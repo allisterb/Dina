@@ -29,7 +29,7 @@ public class DocumentsPlugin : IPlugin
             if (!string.IsNullOrEmpty(text))
             {
                 ActiveDocuments.Push((path, text));
-                return $"The following file is now the active file:\nFile path: {path}";
+                return $"The current active file is  \"{path.Replace(Path.GetExtension(path), "")}\"";
             }
             else
             {
@@ -37,8 +37,7 @@ public class DocumentsPlugin : IPlugin
                     The file content could not be read. You can only read certain file types like PDF files, 
                     MS and OpenOffice documents, and scanned document images. Ask the user if they want to reenter the path
                     or choose something else to do.
-                    """;
-                    
+                    """;            
             }
         }
         else
@@ -65,7 +64,6 @@ public class DocumentsPlugin : IPlugin
 
     }
 
-    
     [KernelFunction, Description("Get the text of the current document.")]
     public string GetCurrentDocumentText(
       ILogger? logger

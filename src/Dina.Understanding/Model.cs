@@ -68,7 +68,6 @@ public class ModelConversation : Runtime
 #pragma warning restore SKEXP0070, SKEXP0001 
             promptExecutionSettings = new OllamaPromptExecutionSettings()
             {
-                Temperature = 0.1f,
                 ModelId = model,
                 FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: true),
                 ExtensionData = new Dictionary<string, object>()

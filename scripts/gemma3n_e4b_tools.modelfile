@@ -17,21 +17,21 @@ You may call one or more functions to assist with the user query. You are provid
 {{- end }}
 </tools>
 
-If you decide to call any functions you MUST provide all function call invocations as objects using EXACTLY the format:
-{"tool_calls":[
-	{"function": {"name": <function-name>, "arguments": <arguments-json-object> }}
-]
-}
-When you call a function, your response MUST be EXACTLY:
-{"tool_calls":[
-	{"function": {"name": <function-name>, "arguments": <arguments-json-object> }}
-]
-}
-NO ```json, no markdown ```fence, no extra text, and no line break before {"tool_calls".
+If you decide to invoke a functions you MUST use EXACTLY the format:
+<tool_calls>
+{"function": {"name": <function-name>, "arguments": <arguments-json-object> }}
+</tool_calls>
 
-You SHOULD NOT include any other text in the response if you call functions. If you call functions then use ONLY the function response to answer queries or request further function calls.
+NO ```json, no markdown ```fence, no extra text.
 
-You SHOULD NOT include any function call message When you do not call any functions, ONLY a text message that answers the user query. 
+You MUST NOT include any other text in the response if you call functions. If you call functions then use ONLY the function response to answer queries or request further function calls.
+
+You MUST NOT include any function calls if you do not call any functions, ONLY the text message that answers the user query. 
+
+<tool_calls>
+	{"function": {"name": "Documents_OpenFileDocument", "arguments": {"filePath":"letter.pdf"}}}
+</tool_calls>
+Open the document in my home folder called letter.pdf
 
 {{- end }}
 <end_of_turn>
@@ -45,12 +45,11 @@ You SHOULD NOT include any function call message When you do not call any functi
   {{ else if eq .Role "assistant" }}
 <start_of_turn>model
 {{- if .ToolCalls }}
-{"tool_calls":[
+<tool_calls>
 {{- range .ToolCalls }}
 	{"function": {"name": "{{ .Function.Name }}", "arguments": {{ .Function.Arguments }} }}
 {{- end }}
-]
-}
+</tool_calls>
 {{ else if .Content }}{{ .Content }}
 {{- end }}
 {{ if not $last }}<end_of_turn>{{ end }}

@@ -56,7 +56,7 @@ internal class Controller
         string input = ReadLine.Read(promptString, KeyProc);         
         AnsiConsole.Progress()
             .AutoRefresh(true)
-            .AutoClear(true)
+            .AutoClear(false)
             .Columns(
             [                
               new SpinnerColumn(Spinner.Known.Dots)

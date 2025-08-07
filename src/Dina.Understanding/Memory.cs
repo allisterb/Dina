@@ -46,7 +46,7 @@ public class Memory : Runtime
             {
                 var id = file.GetHashCode();
                 kbindex.Add(id, file);
-                await memory.ImportTextAsync(text, id.ToString(), index: "kb");
+                await memory.ImportTextAsync(text, id.ToString(), index: "kb").ConfigureAwait(false);
             }
         }
         if (kbindex.Count > 0)

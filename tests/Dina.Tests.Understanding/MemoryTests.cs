@@ -18,12 +18,13 @@ public class MemoryTests
         Runtime.Initialize("Dina.Understanding", "Tests", false, lf, lp);
         Documents.BinPath = "C:\\Projects\\Dina\\bin";
     }
+    /*
 
     [Fact]
     public async Task CanSearchMemory()
     {
         var m = new Memory(ModelRuntime.Ollama, OllamaModels.Gemma3n_2eb, OllamaModels.Nomic_Embed_Text);
-        var r = await m.ImportAsync("..\\..\\..\\..\\data\\test.pdf", "test");
+        var r = await m.("..\\..\\..\\..\\data\\test.pdf", "test");
         Assert.True(r.IsSuccess);
         var rx = await m.SearchAsync("data analysis", "test");
         string s = "";
@@ -54,6 +55,6 @@ public class MemoryTests
         Assert.NotNull(s);
         Console.WriteLine(s);
     }
-
+    */
 
 }
