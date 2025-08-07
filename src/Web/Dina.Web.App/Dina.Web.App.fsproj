@@ -33,25 +33,25 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Dina.Base\Dina.Base.csproj" />
-    <ProjectReference Include="..\Dina.Understanding\Dina.Understanding.csproj" />
+    <ProjectReference Include="..\..\Dina.Base\Dina.Base.csproj" />
+    <ProjectReference Include="..\..\Dina.Understanding\Dina.Understanding.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Reference Include="Dina.Web.JQuery">
-      <HintPath>..\..\lib\Dina.Web.JQuery.dll</HintPath>
+      <HintPath>..\..\..\lib\Dina.Web.JQuery.dll</HintPath>
     </Reference>
     <Reference Include="Dina.Web.JQueryTerminal">
-      <HintPath>..\..\lib\Dina.Web.JQueryTerminal.dll</HintPath>
+      <HintPath>..\..\..\lib\Dina.Web.JQueryTerminal.dll</HintPath>
     </Reference>
     <Reference Include="Dina.Web.WebSpeech">
-      <HintPath>..\..\lib\Dina.Web.WebSpeech.dll</HintPath>
+      <HintPath>..\..\..\lib\Dina.Web.WebSpeech.dll</HintPath>
     </Reference>
     <Reference Include="Dina.Web.WebAudio">
-      <HintPath>..\..\lib\Dina.Web.WebAudio.dll</HintPath>
+      <HintPath>..\..\..\lib\Dina.Web.WebAudio.dll</HintPath>
     </Reference>
     <Reference Include="Dina.Web.BotLibre">
-      <HintPath>..\..\lib\Dina.Web.BotLibre.dll</HintPath>
+      <HintPath>..\..\..\lib\Dina.Web.BotLibre.dll</HintPath>
     </Reference>
   </ItemGroup>
   

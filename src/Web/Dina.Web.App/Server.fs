@@ -11,5 +11,5 @@ module Server =
         task {
              let ctx = WebSharper.Web.Remoting.GetContext();
              let! user = ctx.UserSession.GetLoggedInUser()
-            return R input
+              //return R input
         }

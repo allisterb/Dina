@@ -3,17 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36221.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dina.Web.JQueryTerminal", "Dina.Web.JQueryTerminal\Dina.Web.JQueryTerminal.fsproj", "{E4509B30-1F58-0972-90E2-531C32A7672C}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dina.Web.JQueryTerminal", "Web\Dina.Web.JQueryTerminal\Dina.Web.JQueryTerminal.fsproj", "{E4509B30-1F58-0972-90E2-531C32A7672C}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dina.Web.App", "Dina.Web.App\Dina.Web.App.fsproj", "{46760437-28D4-602E-A79E-E7A12F62E6D2}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dina.Web.App", "Web\Dina.Web.App\Dina.Web.App.fsproj", "{46760437-28D4-602E-A79E-E7A12F62E6D2}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dina.Web.BotLibre", "Dina.Web.BotLibre\Dina.Web.BotLibre.fsproj", "{1D0753E5-E7A2-B5E0-372A-F5FFE004A77B}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dina.Web.BotLibre", "Web\Dina.Web.BotLibre\Dina.Web.BotLibre.fsproj", "{1D0753E5-E7A2-B5E0-372A-F5FFE004A77B}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dina.Web.WebSpeech", "Dina.Web.WebSpeech\Dina.Web.WebSpeech.fsproj", "{90B92A11-0128-3BF3-0096-004D330030D6}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dina.Web.WebAudio", "Web\Dina.Web.WebAudio\Dina.Web.WebAudio.fsproj", "{47419CE1-7F07-6696-CBDA-B1359B6B05FE}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dina.Web.WebAudio", "Dina.Web.WebAudio\Dina.Web.WebAudio.fsproj", "{47419CE1-7F07-6696-CBDA-B1359B6B05FE}"
-EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dina.Web.JQuery", "Dina.Web.JQuery\Dina.Web.JQuery.fsproj", "{F7156190-2F35-1236-782C-124D833F63DF}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dina.Web.JQuery", "Web\Dina.Web.JQuery\Dina.Web.JQuery.fsproj", "{F7156190-2F35-1236-782C-124D833F63DF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dina.Understanding", "Dina.Understanding\Dina.Understanding.csproj", "{34EC76D7-C2F1-43B8-BBD8-A948372322BD}"
 EndProject
@@ -59,10 +57,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{08BC
 	ProjectSection(SolutionItems) = preProject
 		..\build = ..\build
 		..\dina = ..\dina
-		..\scripts\docvqa_dataset.py = ..\scripts\docvqa_dataset.py
+		..\dina.cmd = ..\dina.cmd
 		..\scripts\finetune_gemma3n_docvqa.py = ..\scripts\finetune_gemma3n_docvqa.py
 		..\scripts\gemma3n_e4b_tools.modelfile = ..\scripts\gemma3n_e4b_tools.modelfile
 		..\scripts\ollama_create_model.bat = ..\scripts\ollama_create_model.bat
+	EndProjectSection
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Dina.Web.WebSpeech", "Web\Dina.Web.WebSpeech\Dina.Web.WebSpeech.fsproj", "{FB43E758-03DC-928D-C6A6-00986AE0F940}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Notebooks", "Notebooks", "{1BA17CF5-FF8D-46F4-B920-49E0F44413AB}"
+	ProjectSection(SolutionItems) = preProject
+		..\notebooks\finetune_gemma3n_function_calling.ipynb = ..\notebooks\finetune_gemma3n_function_calling.ipynb
 	EndProjectSection
 EndProject
 Global
@@ -83,10 +88,6 @@ Global
 		{1D0753E5-E7A2-B5E0-372A-F5FFE004A77B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1D0753E5-E7A2-B5E0-372A-F5FFE004A77B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1D0753E5-E7A2-B5E0-372A-F5FFE004A77B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{90B92A11-0128-3BF3-0096-004D330030D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{90B92A11-0128-3BF3-0096-004D330030D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{90B92A11-0128-3BF3-0096-004D330030D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{90B92A11-0128-3BF3-0096-004D330030D6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{47419CE1-7F07-6696-CBDA-B1359B6B05FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{47419CE1-7F07-6696-CBDA-B1359B6B05FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{47419CE1-7F07-6696-CBDA-B1359B6B05FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -143,6 +144,10 @@ Global
 		{14C2B17F-F851-4352-85E9-155588AF997A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{14C2B17F-F851-4352-85E9-155588AF997A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{14C2B17F-F851-4352-85E9-155588AF997A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB43E758-03DC-928D-C6A6-00986AE0F940}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB43E758-03DC-928D-C6A6-00986AE0F940}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB43E758-03DC-928D-C6A6-00986AE0F940}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB43E758-03DC-928D-C6A6-00986AE0F940}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -151,7 +156,6 @@ Global
 		{E4509B30-1F58-0972-90E2-531C32A7672C} = {D3462183-1CCB-4385-AD00-C7CED0AF4C8B}
 		{46760437-28D4-602E-A79E-E7A12F62E6D2} = {D3462183-1CCB-4385-AD00-C7CED0AF4C8B}
 		{1D0753E5-E7A2-B5E0-372A-F5FFE004A77B} = {D3462183-1CCB-4385-AD00-C7CED0AF4C8B}
-		{90B92A11-0128-3BF3-0096-004D330030D6} = {D3462183-1CCB-4385-AD00-C7CED0AF4C8B}
 		{47419CE1-7F07-6696-CBDA-B1359B6B05FE} = {D3462183-1CCB-4385-AD00-C7CED0AF4C8B}
 		{F7156190-2F35-1236-782C-124D833F63DF} = {D3462183-1CCB-4385-AD00-C7CED0AF4C8B}
 		{34EC76D7-C2F1-43B8-BBD8-A948372322BD} = {C8D9803A-994B-4D34-AFB5-099398074E9C}
@@ -167,6 +171,7 @@ Global
 		{28D8A7D4-8225-3050-3A6E-E6165A3CCE1D} = {330E7B6D-C898-445D-BFC1-21F52D8A04AE}
 		{F5A3308E-B621-4415-8C95-285836639ACA} = {C8D9803A-994B-4D34-AFB5-099398074E9C}
 		{14C2B17F-F851-4352-85E9-155588AF997A} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{FB43E758-03DC-928D-C6A6-00986AE0F940} = {D3462183-1CCB-4385-AD00-C7CED0AF4C8B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {84D029BC-6506-4F9B-BE98-6BCD8566C01C}
