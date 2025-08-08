@@ -10,7 +10,7 @@ using Microsoft.SemanticKernel.Functions;
 public class AgentConversation : ModelConversation
 {
     public AgentConversation(string instructions, string name = "Default Agent", (IPlugin, string)[]? plugins = null, 
-        Dictionary<string, Dictionary<string, object>>? sharedState = null, bool immutableKernel = false, ModelRuntime runtimeType = ModelRuntime.Ollama, string model = OllamaModels.Gemma3n_e4b_tools_test, 
+        Dictionary<string, Dictionary<string, object>>? sharedState = null, bool immutableKernel = false, ModelRuntime runtimeType = ModelRuntime.Ollama, string model = OllamaModels.Gemma3n_e4b_tools_test_hf, 
         string runtimePath = "http://localhost:11434", string[]? systemPrompts = null)
                 : base(runtimeType, model, runtimePath, systemPrompts)
     {

@@ -120,7 +120,7 @@ namespace Dina.Tests.Understanding
             await foreach (var response in ac.Prompt("What is the time in Paris, France?"))
             {
                 Assert.NotNull(response);
-                Console.WriteLine(response.Message.ToString());
+                Console.Write(response.Message.ToString());
             }   
         }
         

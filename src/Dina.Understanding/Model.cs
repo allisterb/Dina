@@ -28,9 +28,8 @@ public enum ModelRuntime
 public static class OllamaModels
 {
     #region Constants
-    public const string Gemma3_4b_it_q4_K_M = "gemma3:4b-it-q4_K_M";
-    public const string Gemma3n_2eb = "gemma3n:e2b";
-    public const string Gemma3n_e4b_tools_test = "hf.co/allisterb/gemma3n_e4b_tools_test-GGUF";
+    public const string Gemma3n_e4b_tools_test = "gemma3n:e4b_tools_test";
+    public const string Gemma3n_e4b_tools_test_hf = "hf.co/allisterb/gemma3n_e4b_tools_test-GGUF";
     public const string Gemma3_4b = "gemma3:4b";
     public const string Nomic_Embed_Text = "nomic-embed-text";
     public const string All_MiniLm = "all-minilm";
@@ -40,7 +39,7 @@ public static class OllamaModels
 public class ModelConversation : Runtime
 {
     #region Constructors
-    public ModelConversation(ModelRuntime runtimeType = ModelRuntime.Ollama, string model = OllamaModels.Gemma3n_e4b_tools_test, string runtimePath = "http://localhost:11434", string[]? systemPrompts = null)
+    public ModelConversation(ModelRuntime runtimeType = ModelRuntime.Ollama, string model = OllamaModels.Gemma3n_e4b_tools_test_hf, string runtimePath = "http://localhost:11434", string[]? systemPrompts = null)
     {
         this.runtimeType = runtimeType;
         this.runtimePath = runtimePath;
@@ -56,15 +55,13 @@ public class ModelConversation : Runtime
             var endpoint = new Uri(runtimePath);
 #pragma warning disable SKEXP0001, SKEXP0070 
             var _client = new OllamaApiClient(endpoint, model);
-            
             if (!_client.IsRunningAsync().Result)
             {
                 throw new InvalidOperationException($"Ollama API at {runtimePath} is not running. Please start the Ollama server.");
             }
             client = _client;
             chat = _client.AsChatCompletionService(kernel.Services);
-            builder.AddOllamaEmbeddingGenerator(new OllamaApiClient(endpoint, OllamaModels.All_MiniLm));
-            //embeddingService = _client.AsEmbeddingGenerationService(kernel.Services);   
+            builder.AddOllamaEmbeddingGenerator(new OllamaApiClient(endpoint, OllamaModels.Nomic_Embed_Text)); 
 #pragma warning restore SKEXP0070, SKEXP0001 
             promptExecutionSettings = new OllamaPromptExecutionSettings()
             {
@@ -79,28 +76,23 @@ public class ModelConversation : Runtime
         {
             NativeLibraryConfig.LLama
                 .WithAutoFallback(true)
-                .WithCuda(false)
-                .WithVulkan(false)
-                .WithAvx(AvxLevel.None)
+                .WithCuda(true)
                 .WithSearchDirectory(runtimePath)
                 .WithLogCallback(logger);
 
             var parameters = new LLama.Common.ModelParams(model)
             {
                 FlashAttention = true,
-                GpuLayerCount = 35 // How many layers to offload to GPU.
             };
 
             LLama.LLamaWeights lm = LLama.LLamaWeights.LoadFromFile(parameters);
             var ex = new LLama.StatelessExecutor(lm, parameters, logger);
             promptExecutionSettings = new LLamaSharpPromptExecutionSettings()
             {
-                Temperature = 0.1f,
                 ModelId = model,
                 FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: true),
                 ExtensionData = new Dictionary<string, object>()
             };
-            //embeddingService = new LLamaSharpEmbeddingGenerationService(ex, parameters, loggerFactory);
             chat = new LLamaSharpChatCompletion(ex);
 #pragma warning disable SKEXP0001,SKEXP0010 
             client = chat.AsChatClient();
@@ -113,7 +105,6 @@ public class ModelConversation : Runtime
 #pragma warning restore SKEXP0001, SKEXP0010
             promptExecutionSettings = new OpenAIPromptExecutionSettings()
             {
-                Temperature = 0.1f,
                 ModelId = model,
                 FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: true), 
                 ExtensionData = new Dictionary<string, object>()
@@ -191,24 +182,26 @@ public class ModelConversation : Runtime
         messages.AddAssistantMessage(sb.ToString());
     }
     #endregion
-    public VectorStore vectorStore;
 
+   
     #region Fields
 
-    public ModelRuntime runtimeType;
+    public readonly ModelRuntime runtimeType;
 
-    public string runtimePath;
+    public readonly string runtimePath;
 
-    public string model;    
+    public readonly string model;    
 
-    public Kernel kernel = new Kernel();
+    public readonly Kernel kernel = new Kernel();
 
-    public IChatClient client;
+    public readonly IChatClient client;
 
-    public IChatCompletionService chat;
+    public readonly IChatCompletionService chat;
 
-    public ChatHistory messages = new ChatHistory();
+    public readonly ChatHistory messages = new ChatHistory();
 
-    public PromptExecutionSettings promptExecutionSettings;
+    public readonly PromptExecutionSettings promptExecutionSettings;
+
+    public readonly VectorStore vectorStore;
     #endregion
 }
