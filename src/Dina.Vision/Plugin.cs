@@ -64,7 +64,7 @@ public class DocumentsPlugin : IPlugin
 
     }
 
-    [KernelFunction, Description("Get the text of the current document.")]
+    [KernelFunction, Description("Get the text of the current document for answering questions and analysis.")]
     public string GetCurrentDocumentText(
       ILogger? logger
     )

@@ -1,6 +1,6 @@
 # Original by Illia Filipas: https://github.com/IllFil/gemma3-ollama-tools/blob/main/gemma3-tools-modelfile
 
-FROM gemma3n:e4b
+FROM hf.co/allisterb/gemma3n_e4b_tools_test-GGUF
 
 TEMPLATE """
 {{- if .Messages }}

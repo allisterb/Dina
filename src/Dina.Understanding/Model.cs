@@ -67,6 +67,9 @@ public class ModelConversation : Runtime
             {
                 ModelId = model,
                 FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: true),
+                Temperature = 1.0f,
+                TopK = 64,
+                TopP = 0.95f,
                 ExtensionData = new Dictionary<string, object>()
             };
 
@@ -106,7 +109,9 @@ public class ModelConversation : Runtime
             promptExecutionSettings = new OpenAIPromptExecutionSettings()
             {
                 ModelId = model,
-                FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: true), 
+                FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: true),
+                TopP = 0.95f,
+                Temperature = 0.1,
                 ExtensionData = new Dictionary<string, object>()
             };
             Info("Using OpenAI compatible API at {0} with model {1}", runtimePath, model);
