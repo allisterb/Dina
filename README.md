@@ -10,7 +10,7 @@ Dina requires an Ollama server with the following models:
 * [allisterb/gemma3n_e4b_tools_test](https://ollama.com/allisterb/gemma3n_e4b_tools_test)
 * nomic-embed-text 
 
-You can pull these models by running the ollama pull command for both models e.g. `ollama pull allisterb/gemma3n_e4b_tools_test && ollama pull nomic-embed-text` from your command line.
+You can pull these models by running the `ollama pull` command for both models e.g. `ollama pull allisterb/gemma3n_e4b_tools_test && ollama pull nomic-embed-text` from your command line.
 ## Building
 
 * Clone the Dina repo from GitHub: `git clone https://github.com/allisterb/Dina.git --recurse-submodules`
@@ -20,5 +20,6 @@ You can pull these models by running the ollama pull command for both models e.g
 Enter `dina` or `./dina` in the repository root.
 
 ## Models
-Dina uses the Gemma 3n model for document intelligence tasks and function calling. The model was fine-tuned for function-calling using this [notebook](https://github.com/allisterb/Dina/blob/master/notebooks/finetune_gemma3n_function_calling.ipynb).
+Dina uses the Gemma 3n model for document intelligence tasks and function calling. The model was fine-tuned for function-calling using this [notebook](https://github.com/allisterb/Dina/blob/master/notebooks/finetune_gemma3n_function_calling.ipynb). 
 
+The model used for fine-tuning is [gemma-3n-E4B-it-unsloth-bnb-4bit](https://huggingface.co/unsloth/gemma-3n-E4B-it-unsloth-bnb-4bit) which is text-only and Ollama doesn't support image inputs for Gemma 3n models as yet so Dina uses Tesseract-OCR to convert scanned document images to text before passing the text to the Gemma 3n model for analyzing.
