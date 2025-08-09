@@ -28,7 +28,7 @@ public enum ModelRuntime
 public static class OllamaModels
 {
     #region Constants
-    public const string Gemma3n_e4b_tools_test = "gemma3n:e4b_tools_test";
+    public const string Gemma3n_e4b_tools_test = "allisterb/gemma3n_e4b_tools_test:latest";
     public const string Gemma3n_e4b_tools_test_hf = "hf.co/allisterb/gemma3n_e4b_tools_test-GGUF";
     public const string Gemma3_4b = "gemma3:4b";
     public const string Nomic_Embed_Text = "nomic-embed-text";
@@ -39,7 +39,7 @@ public static class OllamaModels
 public class ModelConversation : Runtime
 {
     #region Constructors
-    public ModelConversation(ModelRuntime runtimeType = ModelRuntime.Ollama, string model = OllamaModels.Gemma3n_e4b_tools_test_hf, string runtimePath = "http://localhost:11434", string[]? systemPrompts = null)
+    public ModelConversation(ModelRuntime runtimeType = ModelRuntime.Ollama, string model = OllamaModels.Gemma3n_e4b_tools_test, string runtimePath = "http://localhost:11434", string[]? systemPrompts = null)
     {
         this.runtimeType = runtimeType;
         this.runtimePath = runtimePath;
