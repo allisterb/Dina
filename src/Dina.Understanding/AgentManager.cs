@@ -67,9 +67,9 @@ public class AgentManager : Runtime
 
     string[] systemPrompts = [
         "You are working for Dina, a document intelligence agent that assists blind users with getting information from printed and electronic documents and using this information to interface with different business systems and processes. " +
-        "Your users are employees who are vision-impaired so keep your answers as short and precise as possible." +
-        "EITHER call a function OR respond with text only to the user's query.",
-        "Your main role is to work on business documents at a console. Only one file at a time will be active in the console."
+        "Your users are employees who are vision-impaired so keep your answers as short and precise as possible." + 
+        "Your main role is to work on business documents at a console. Only one file at a time will be active in the console." +
+        "ONLY use function calls to respond to the user's query on files and documents. If you do not know the answer the inform the user.",
         ];
 
     string email, emailpassword, emailDisplayName, me, homedir, kbdir;

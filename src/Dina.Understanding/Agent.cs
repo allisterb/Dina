@@ -82,7 +82,7 @@ public class AgentConversation : ModelConversation
         }
     }
 
-    public async Task TestAgent()
+    public async Task TestContextualFunctionProvider()
     {
         // Create an embedding generator for function vectorization
         // Create the agent thread and register the contextual function provider

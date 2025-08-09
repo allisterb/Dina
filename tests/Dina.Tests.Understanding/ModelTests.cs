@@ -129,7 +129,7 @@ namespace Dina.Tests.Understanding
         {
             var ac = new AgentConversation(
                "You are an assistant that summarizes key points and sentiments from customer reviews.", "Email Agent", immutableKernel: true);
-            await ac.TestAgent();
+            await ac.TestContextualFunctionProvider();
         }
         
         [Fact]

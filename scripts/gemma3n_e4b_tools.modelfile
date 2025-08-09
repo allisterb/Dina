@@ -77,4 +77,5 @@ Open the document in my home folder called letter.pdf
 {{ .Response }}{{ if .Response }}<end_of_turn>{{ end }}
 {{- end }}"""
 
+PARAMETER stop "<end_of_turn>"
 PARAMETER temperature 0.1

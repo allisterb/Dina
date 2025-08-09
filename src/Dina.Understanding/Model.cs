@@ -30,6 +30,7 @@ public static class OllamaModels
     #region Constants
     public const string Gemma3n_e4b_tools_test = "allisterb/gemma3n_e4b_tools_test:latest";
     public const string Gemma3n_e4b_tools_test_hf = "hf.co/allisterb/gemma3n_e4b_tools_test-GGUF";
+    public const string Gemma3n_e4b_tools_test_local = "gemma3n:e4b_tools_test";
     public const string Gemma3_4b = "gemma3:4b";
     public const string Nomic_Embed_Text = "nomic-embed-text";
     public const string All_MiniLm = "all-minilm";
@@ -67,7 +68,7 @@ public class ModelConversation : Runtime
             {
                 ModelId = model,
                 FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: true),
-                Temperature = 1.0f,
+                Temperature = 0.1f,
                 TopK = 64,
                 TopP = 0.95f,
                 ExtensionData = new Dictionary<string, object>()
