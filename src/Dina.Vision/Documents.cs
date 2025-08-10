@@ -1,15 +1,5 @@
 ﻿namespace Dina;
 
-using Microsoft.Extensions.Logging;
-using NAPS2.Images;
-using NAPS2.Images.ImageSharp;
-using NAPS2.Scan;
-using OpenCvSharp;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats;
-using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.ImageSharp.Processing;
-using Microsoft.SemanticKernel;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -17,16 +7,36 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
+using NAPS2.Images;
+using NAPS2.Images.ImageSharp;
+using NAPS2.Scan;
+using OpenCvSharp;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
+
 using static Dina.Result;
 
 public class Documents : Runtime
 {
-    public static string BinPath { get; set; } = "bin";
+    #region Properties
+    public static string MuPdfPath { get; set; } =  Path.Combine(CurentDirectory, "bin", "mupdf");
 
-    public static string MuPdfToolPath => Path.Combine(BinPath, "mutool");
+    public static string TesseractPath { get; set; } = Path.Combine(CurentDirectory, "bin", "tesseract");
 
-    public static string TesseractPath => Path.Combine(BinPath, "tesseract-ocr-5.5.0", "tesseract");
-    
+    public static string HomeDir { get; set; } = Path.Combine(Directory.GetCurrentDirectory(), "data", "home");
+
+    public static string KBDir { get; set; } = Path.Combine(Directory.GetCurrentDirectory(), "data", "kb");
+
+    public static string MuPdfToolPath { get; set; } = Path.Combine(MuPdfPath, "mutool")
+         + (Environment.OSVersion.Platform == PlatformID.Win32NT ? ".exe" : "");
+
+    public static string TesseractToolPath { get; set; } = Path.Combine(MuPdfPath, "tesseract")
+        + (Environment.OSVersion.Platform == PlatformID.Win32NT ? ".exe" : "");
+
+    #endregion
+
+    #region Methods
     public static Result<byte[][]> ConvertPdfToImages(string pdfFilePath, string? outputDirectory = null, string type="jpg")
     {
         if (!File.Exists(pdfFilePath)) return FileDoesNotExistFailure<byte[][]>(pdfFilePath);
@@ -228,9 +238,10 @@ public class Documents : Runtime
             return "";
         }
     }
+    #endregion
 }
 
 
-    
 
-   
+
+

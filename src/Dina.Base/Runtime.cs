@@ -63,6 +63,8 @@ namespace Dina
 
         public static Version AssemblyVersion { get; } = Assembly.GetAssembly(typeof(Runtime))!.GetName().Version!;
         
+        public static string CurentDirectory => Directory.GetCurrentDirectory();
+
         public static bool IsUnitTestRun { get; set; }
 
         public static string RunFile => DinaDevDir.CombinePath(ToolName + ".run");

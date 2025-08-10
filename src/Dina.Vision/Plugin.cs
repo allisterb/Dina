@@ -29,7 +29,7 @@ public class DocumentsPlugin : IPlugin
             if (!string.IsNullOrEmpty(text))
             {
                 ActiveDocuments.Push((path, text));
-                return $"The current active file is  \"{path.Replace(Path.GetExtension(path), "")}\"";
+                return $"The current active file is  \"{path}\"";
             }
             else
             {

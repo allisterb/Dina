@@ -32,4 +32,8 @@
     </None>
   </ItemGroup>
 
+  <Target Name="CopyDefs" AfterTargets="Build">
+    <Copy SourceFiles="testappsettings.json" DestinationFolder="..\.." />
+  </Target>
+  
 </Project>

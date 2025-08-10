@@ -15,7 +15,7 @@ public class AgentManager : Runtime
     {
         config = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("testappsettings.json", optional: false, reloadOnChange: true)
+            .AddJsonFile("testappsettings.json", optional: false, reloadOnChange: false)
             .Build();
         
         memory = new Memory(ModelRuntime.Ollama, OllamaModels.Gemma3n_e4b_tools_test, OllamaModels.Nomic_Embed_Text);
@@ -44,7 +44,7 @@ public class AgentManager : Runtime
             (memory.plugin, "Memory"),
             (new MailPlugin(email, emailpassword, emailDisplayName) {SharedState = sharedState}, "Mail"),
             (new DocumentsPlugin(){SharedState = sharedState}, "Documents"),
-            //(new FilesPlugin(homedir) {SharedState = sharedState}, "Files"),
+            //(new ContactsPlugin() {SharedState = sharedState}, "Contacts"),
         ],
         systemPrompts: systemPrompts)
         {

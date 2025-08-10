@@ -18,7 +18,7 @@ public class ContactsPlugin : IPlugin
         string name,
         ILogger? logger = null) => name switch
         {
-            "John Smiley" => (string)SharedState["Config"]["ManagerEmail"],
+            "Allister Beharry" => (string)SharedState["Config"]["ManagerEmail"],
             _ => ""
         };
 }

@@ -106,6 +106,9 @@ public class Memory : Runtime
     public async Task<Result<SearchResult>> SearchAsync(string query, string index) 
         => await ExecuteAsync(memory.SearchAsync(query, index: index), "Query \"{0}\" of index {1} returned {2} results", "", (r) => r.Results.Count.ToString(), query, index);
     */
+
+
+
     #region Fields
     public readonly MemoryPlugin plugin;
     Dictionary<int, string> kbindex = new Dictionary<int, string>();
