@@ -157,14 +157,14 @@ internal class Controller
         if (template.Length == 0 || (template.Length == 1 && template[0] == '*')) return;
         var text = Markup.Escape(args.Length == 0 ? template : string.Format(template, args));
         AnsiConsole.MarkupLine($"[lightgoldenrod2_1]{text}[/]");
-        AnsiConsole.MarkupLine($"[yellow]{TextToBraille(text)}[/]");
+        if (simulateBraille) AnsiConsole.MarkupLine($"[yellow]{TextToBraille(text)}[/]");
     }
 
     internal static void SayErrorLine(string template, params object[] args)
     {
         var text = Markup.Escape(args.Length == 0 ? template : string.Format(template, args));
         AnsiConsole.MarkupLine($"[red]{text}[/]");
-        AnsiConsole.MarkupLine($"[red]{TextToBraille(text)}[/]");
+        if (simulateBraille) AnsiConsole.MarkupLine($"[red]{TextToBraille(text)}[/]");
     }
 
     // Translated from https://github.com/vineethsubbaraya/pybraille/blob/main/pybraille/main.py
@@ -280,6 +280,9 @@ internal class Controller
             Thread.Sleep(800);
         }
     }, 1);
+
+    
+    internal static bool simulateBraille;
 
     static bool beeperOn;
 

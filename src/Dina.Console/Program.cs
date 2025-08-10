@@ -30,18 +30,22 @@ internal class Program : Runtime
            .Enrich.FromLogContext()
            .MinimumLevel.Verbose()
            .WriteTo.File(Path.Combine(Runtime.AssemblyLocation, "Dina.CLI.log"))
+           
            .CreateLogger();
         var lf = new SerilogLoggerFactory(logger);
         var lp = new SerilogLoggerProvider(logger, false);
         Initialize("Dina", "CLI", true, lf, lp);
-        config = new ConfigurationBuilder()
-           .SetBasePath(Directory.GetCurrentDirectory())
-           .AddJsonFile("testappsettings.json", optional: false, reloadOnChange: false)
-           .Build();
-        Documents.MuPdfPath = config["Programs:MuPdf"] ?? Documents.MuPdfPath;
-        Documents.TesseractPath = config["Programs:Tesseract"] ?? Documents.TesseractPath;
-        Documents.HomeDir = config["Files:HomeDir"] ?? Documents.HomeDir;
-        Documents.KBDir = config["Files:KBDir"] ?? Documents.KBDir;
+        if (File.Exists("testappsettings.json"))
+        {
+            var config = new ConfigurationBuilder()
+               .SetBasePath(Directory.GetCurrentDirectory())
+               .AddJsonFile("testappsettings.json", optional: false, reloadOnChange: false)
+               .Build();
+            Documents.muPdfPath = config["Programs:MuPdf"] ?? Documents.muPdfPath;
+            Documents.tesseractPath = config["Programs:Tesseract"] ?? Documents.tesseractPath;
+            Documents.homeDir = config["Files:HomeDir"] ?? Documents.homeDir;
+            Documents.kbDir = config["Files:KBDir"] ?? Documents.kbDir;
+        }
     }
 
     #region Methods
@@ -57,49 +61,49 @@ internal class Program : Runtime
         result
         .WithParsed<Options>(o =>
         {
-            Documents.MuPdfPath = o.MuPdfPath ?? Documents.MuPdfPath;
-            Documents.TesseractPath = o.TesseractPath ?? Documents.TesseractPath;   
-            Documents.HomeDir = o.HomeDir ?? Documents.HomeDir;
-            Documents.KBDir = o.KBDir ?? Documents.KBDir;
-
-            if (Directory.Exists(Documents.MuPdfPath))
+            Documents.muPdfPath = o.MuPdfPath ?? Documents.muPdfPath;
+            Documents.tesseractPath = o.TesseractPath ?? Documents.tesseractPath;   
+            Documents.homeDir = o.HomeDir ?? Documents.homeDir;
+            Documents.kbDir = o.KBDir ?? Documents.kbDir;
+            Controller.simulateBraille = o.SimulateBraille ?? Controller.simulateBraille; 
+            if (Directory.Exists(Documents.muPdfPath))
             {
                 if (!File.Exists(Documents.MuPdfToolPath))
                 {
-                    Error("MuPdf not found at the specified path: {path}", Documents.MuPdfToolPath);
+                    ErrorLine("MuPdf not found at the path: {path}", Documents.MuPdfToolPath);
                     Exit(ExitResult.INVALID_OPTIONS);
                 }
             }
             else
             {
-                Error("MuPdf path does not exist: {path}", Documents.MuPdfPath);
+                ErrorLine("MuPdf directory does not exist: {path}", Documents.muPdfPath);
                 Exit(ExitResult.INVALID_OPTIONS);
             }
 
 
-            if (Directory.Exists(Documents.TesseractPath))
+            if (Directory.Exists(Documents.tesseractPath))
             {
                 if (!File.Exists(Documents.TesseractToolPath))
                 {
-                    Error("Tesseract not found at the specified path: {path}", Documents.TesseractToolPath);
+                    ErrorLine("Tesseract not found at the specified path: {path}", Documents.TesseractToolPath);
                     Exit(ExitResult.INVALID_OPTIONS);
                 }
             }
             else
             {
-                Error("Tesseract path does not exist: {path}", Documents.TesseractPath);
+                ErrorLine("Tesseract path does not exist: {path}", Documents.tesseractPath);
                 Exit(ExitResult.INVALID_OPTIONS);
             }
 
-            if (!Directory.Exists(Documents.HomeDir))
+            if (!Directory.Exists(Documents.homeDir))
             {
-                Error("User home directory does not exist: {path}", Documents.HomeDir);
+                ErrorLine("User home directory does not exist: {path}", Documents.homeDir);
                 Exit(ExitResult.INVALID_OPTIONS);
             }
 
-            if (!Directory.Exists(Documents.KBDir))
+            if (!Directory.Exists(Documents.kbDir))
             {
-                Error("Knowledge base directory does not exist: {path}", Documents.KBDir);
+                ErrorLine("Knowledge base directory does not exist: {path}", Documents.kbDir);
                 Exit(ExitResult.INVALID_OPTIONS);
             }
 
@@ -119,7 +123,7 @@ internal class Program : Runtime
         {
             help.Heading = new HeadingInfo("Lokad.Onnx", AssemblyVersion.ToString(3));
             help.Copyright = "";
-            Info(help);
+            InfoLine(help);
             Exit(ExitResult.SUCCESS);
         }
         else if (errors.Any(e => e.Tag == ErrorType.HelpVerbRequestedError))
@@ -133,7 +137,7 @@ internal class Program : Runtime
             {
                 help.AddVerbs(optionTypes);
             }
-            Info(help.ToString().Replace("--", ""));
+            InfoLine(help.ToString().Replace("--", ""));
             Exit(ExitResult.SUCCESS);
         }
         else if (errors.Any(e => e.Tag == ErrorType.HelpRequestedError))
@@ -142,20 +146,20 @@ internal class Program : Runtime
             help.AddVerbs(result.TypeInfo.Current);
             help.AddOptions(result);
             help.AddPreOptionsLine($"{result.TypeInfo.Current.Name.Replace("Options", "").ToLower()} options:");
-            Info(help);
+            InfoLine(help);
             Exit(ExitResult.SUCCESS);
         }
         else if (errors.Any(e => e.Tag == ErrorType.NoVerbSelectedError))
         {
             help.AddVerbs(optionTypes);
-            Info(help);
+            InfoLine(help);
             Exit(ExitResult.INVALID_OPTIONS);
         }
         else if (errors.Any(e => e.Tag == ErrorType.MissingRequiredOptionError))
         {
             MissingRequiredOptionError error = (MissingRequiredOptionError)errors.First(e => e.Tag == ErrorType.MissingRequiredOptionError);
-            Info(help);
-            Error("A required option is missing.");
+            InfoLine(help);
+            ErrorLine("A required option is missing.");
 
             Exit(ExitResult.INVALID_OPTIONS);
         }
@@ -163,15 +167,15 @@ internal class Program : Runtime
         {
             UnknownOptionError error = (UnknownOptionError)errors.First(e => e.Tag == ErrorType.UnknownOptionError);
             help.AddVerbs(optionTypes);
-            Info(help);
-            Error("Unknown option: {error}.", error.Token);
+            InfoLine(help);
+            ErrorLine("Unknown option: {error}.", error.Token);
             Exit(ExitResult.INVALID_OPTIONS);
         }
         else
         {
-            Error("An error occurred parsing the program options: {errors}.", errors);
+            ErrorLine("An error occurred parsing the program options: {errors}.", errors);
             help.AddVerbs(optionTypes);
-            Info(help);
+            InfoLine(help);
             Exit(ExitResult.INVALID_OPTIONS);
         }
     }
@@ -187,16 +191,18 @@ internal class Program : Runtime
         e => e);
     }
 
-
-    public static void Exit(ExitResult result)
+    static void InfoLine(string template, params object[] args)
     {
-        if (Cts != null && !Cts.Token.CanBeCanceled)
-        {
-            Cts.Cancel();
-            Cts.Dispose();
-        }
-        ResetConsole();
-        Environment.Exit((int)result);
+        Info(template, args);
+        var text = Markup.Escape(args.Length == 0 ? template : string.Format(template, args));
+        AnsiConsole.MarkupLine($"[lightgoldenrod2_1]{text}[/]");
+    }
+
+    static void ErrorLine(string template, params object[] args)
+    {
+        Error(template, args);  
+        var text = Markup.Escape(args.Length == 0 ? template : string.Format(template, args));
+        AnsiConsole.MarkupLine($"[red]{text}[/]");
     }
 
     static void ResetConsole()
@@ -214,20 +220,21 @@ internal class Program : Runtime
         ResetConsole();
         Environment.Exit((int)ExitResult.UNHANDLED_EXCEPTION);
     }
+
+    public static void Exit(ExitResult result)
+    {
+        if (Cts != null && !Cts.Token.CanBeCanceled)
+        {
+            Cts.Cancel();
+            Cts.Dispose();
+        }
+        ResetConsole();
+        Environment.Exit((int)result);
+    }
     #endregion
 
     #region Fields
     static Type[] optionTypes = { typeof(Options) };
-
-    static IConfigurationRoot config;
-
-    static string? MuPdfPath;
-
-    static string? TesseractPath;
-
-    static string? HomeDir;
-
-    static string? KBDir;
 
     static ConsoleColor fgcolor = System.Console.ForegroundColor;
 

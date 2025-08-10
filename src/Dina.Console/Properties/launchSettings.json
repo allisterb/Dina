@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Dina.Console": {
+      "commandName": "Project",
+      "commandLineArgs": "run"
+    }
+  }
+}
