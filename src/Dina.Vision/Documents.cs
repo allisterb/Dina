@@ -145,13 +145,13 @@ public class Documents : Runtime
     }
 
     public static Result<string> OcrImage(string imageFilePath, string lang = "eng") =>    
-        RunCmd(tesseractPath, $"{FailIfFileDoesNotExist(imageFilePath)} stdout -l {lang} --psm 1 --oem 1 --loglevel ERROR", Path.GetDirectoryName(tesseractPath)!);    
+        RunCmd(TesseractToolPath, $"{FailIfFileDoesNotExist(imageFilePath)} stdout -l {lang} --psm 1 --oem 1 --loglevel ERROR", Path.GetDirectoryName(tesseractPath)!);    
     
     public static Result<string> OcrImage(byte[] imageData, string lang = "eng") => 
-        RunCmd(tesseractPath, $"stdin stdout -l {lang} --oem 1 --psm 1 --loglevel ERROR", imageData, Path.GetDirectoryName(tesseractPath)!);
+        RunCmd(TesseractToolPath, $"stdin stdout -l {lang} --oem 1 --psm 1 --loglevel ERROR", imageData, Path.GetDirectoryName(tesseractPath)!);
     
     public static async Task<Result<string>> OcrImageAsync(byte[] imageData, string lang = "eng") => 
-        await RunCmdAsync(tesseractPath, $"stdin stdout -l {lang} --oem 1 --psm 1 --loglevel ERROR", imageData, Path.GetDirectoryName(tesseractPath)!);
+        await RunCmdAsync(TesseractToolPath, $"stdin stdout -l {lang} --oem 1 --psm 1 --loglevel ERROR", imageData, Path.GetDirectoryName(tesseractPath)!);
     
     public static async Task<Result<string>> ScanTextAsync(string lang = "eng")
     {

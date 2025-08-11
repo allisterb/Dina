@@ -29,11 +29,7 @@ public class AgentConversation : ModelConversation
                 options: new FunctionChoiceBehaviorOptions()
                 {
                     RetainArgumentTypes = true
-                }),
-                ExtensionData = new Dictionary<string, object>
-                {
-                    { "think", false }
-                },
+                })
             }),
             UseImmutableKernel = immutableKernel,
         };
