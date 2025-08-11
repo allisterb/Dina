@@ -13,7 +13,7 @@ public class Options
     public bool NoBeeper { get; set; }
 
     [Option("braille", Required = false, Default = null, HelpText = "Simulate braille output.")]
-    public bool? SimulateBraille { get; set; }
+    public bool? SimulateBraille { get; set; } = null;
 
     [Option("mupdf", Required = false, Default = null, HelpText = "Path to the MuPdf tool.")]
     public string? MuPdfPath { get; set; }

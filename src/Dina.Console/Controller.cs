@@ -4,10 +4,7 @@ using System;
 using System.Drawing;
 using System.Text;
 
-using Microsoft.SemanticKernel.Agents;
 using Spectre.Console;
-
-using SystemColor = System.Drawing.Color;
 
 using static Program;
 
@@ -280,9 +277,6 @@ internal class Controller
             Thread.Sleep(800);
         }
     }, 1);
-
-    
-    internal static bool simulateBraille;
 
     static bool beeperOn;
 

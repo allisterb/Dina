@@ -23,7 +23,7 @@ public class Documents : Runtime
     public static string MuPdfToolPath => Path.Combine(muPdfPath, "mutool")
          + (Environment.OSVersion.Platform == PlatformID.Win32NT ? ".exe" : "");
 
-    public static string TesseractToolPath => Path.Combine(muPdfPath, "tesseract")
+    public static string TesseractToolPath => Path.Combine(tesseractPath, "tesseract")
         + (Environment.OSVersion.Platform == PlatformID.Win32NT ? ".exe" : "");
 
     #endregion

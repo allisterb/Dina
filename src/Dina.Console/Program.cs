@@ -65,18 +65,18 @@ internal class Program : Runtime
             Documents.tesseractPath = o.TesseractPath ?? Documents.tesseractPath;   
             Documents.homeDir = o.HomeDir ?? Documents.homeDir;
             Documents.kbDir = o.KBDir ?? Documents.kbDir;
-            Controller.simulateBraille = o.SimulateBraille ?? Controller.simulateBraille; 
+            simulateBraille = o.SimulateBraille ?? simulateBraille;
             if (Directory.Exists(Documents.muPdfPath))
             {
                 if (!File.Exists(Documents.MuPdfToolPath))
                 {
-                    ErrorLine("MuPdf not found at the path: {path}", Documents.MuPdfToolPath);
+                    ErrorLine("mutool not found at the path: {0}", Documents.MuPdfToolPath);
                     Exit(ExitResult.INVALID_OPTIONS);
                 }
             }
             else
             {
-                ErrorLine("MuPdf directory does not exist: {path}", Documents.muPdfPath);
+                ErrorLine("MuPdf directory does not exist: {0}", Documents.muPdfPath);
                 Exit(ExitResult.INVALID_OPTIONS);
             }
 
@@ -234,6 +234,8 @@ internal class Program : Runtime
     #endregion
 
     #region Fields
+    internal static bool simulateBraille = false;
+
     static Type[] optionTypes = { typeof(Options) };
 
     static ConsoleColor fgcolor = System.Console.ForegroundColor;

@@ -5,76 +5,67 @@ FROM hf.co/allisterb/gemma3n_e4b_tools_test-GGUF
 TEMPLATE """
 {{- if .Messages }}
   {{- if or .System .Tools }}
-<start_of_turn>user
-{{- if .System }}
-{{ .System }}
-{{- end }}
-{{- if .Tools }}
-You may call one or more functions to assist with the user query. You are provided function definitions within the following XML-like block:
-<tools>
-{{- range .Tools }}
-{"type": "function", "function": {{ .Function }}}
-{{- end }}
-</tools>
-
-If you decide to invoke a functions you MUST use EXACTLY the format:
-<tool_calls>
-{"function": {"name": <function-name>, "arguments": <arguments-json-object> }}
-</tool_calls>
-
-NO ```json, no markdown ```fence, no extra text.
-
-You MUST NOT include any other text in the response if you call functions. If you call functions then use ONLY the function response to answer queries or request further function calls.
-
-You MUST NOT include any function calls if you do not call any functions, ONLY the text message that answers the user query. 
-
-<tool_calls>
-	{"function": {"name": "Documents_OpenFileDocument", "arguments": {"filePath":"letter.pdf"}}}
-</tool_calls>
-Open the document in my home folder called letter.pdf
-
-{{- end }}
-<end_of_turn>
-{{- end }}
-
-{{- range $i, $_ := .Messages }}
-  {{- $last := eq (len (slice $.Messages $i)) 1 -}}
-  {{- if eq .Role "user" }}
-<start_of_turn>user
-{{ .Content }}<end_of_turn>
-  {{ else if eq .Role "assistant" }}
-<start_of_turn>model
-{{- if .ToolCalls }}
-<tool_calls>
-{{- range .ToolCalls }}
-	{"function": {"name": "{{ .Function.Name }}", "arguments": {{ .Function.Arguments }} }}
-{{- end }}
-</tool_calls>
-{{ else if .Content }}{{ .Content }}
-{{- end }}
-{{ if not $last }}<end_of_turn>{{ end }}
-{{ else if eq .Role "tool" }}
-<start_of_turn>user
-<tool_response>
-{{ .Content }}
-</tool_response>
-<end_of_turn>
- {{ end }}
- {{- if and (ne .Role "assistant") $last }}
-<start_of_turn>model
-  {{ end }}
-{{- end }}
+	<start_of_turn>user
+	{{- if .System }}
+	{{ .System }}
+	{{- end }}
+	{{- if .Tools }}
+	# Tools
+	You may call one or more functions to assist with the user query. You are provided function definitions within the following XML-like block:
+	<tools>
+	{{- range .Tools }}
+		{"type": "function", "function": {{ .Function }}}
+	{{- end }}
+	</tools>
+	If you decide to invoke a functions you MUST use EXACTLY the format:
+	<tool_calls>
+	{"function": {"name": <function-name>, "arguments": <arguments-json-object> }}
+	</tool_calls>
+	NO ```json, no markdown ```fence, no extra text.
+	You MUST NOT include any other text in the response if you call functions. If you call functions then use ONLY the function response to answer queries or request further function calls.
+	You MUST NOT include any function calls if you do not call any functions, ONLY the text message that answers the user query. 
+	{{- end }}
+	<end_of_turn>
+  {{- end }}
+  {{- range $i, $_ := .Messages }}
+    {{- $last := eq (len (slice $.Messages $i)) 1 -}}
+    {{- if eq .Role "user" }}
+      <start_of_turn>user
+      {{ .Content }}<end_of_turn>
+    {{ else if eq .Role "assistant" }}
+      <start_of_turn>model
+      {{- if .ToolCalls }}
+		<tool_calls>
+		{{- range .ToolCalls }}
+			{"function": {"name": "{{ .Function.Name }}", "arguments": {{ .Function.Arguments }} }}
+		{{- end }}
+		</tool_calls>
+      {{- else if .Content }}
+		{{ .Content }}
+	  {{- end }}
+	  {{ if not $last }}<end_of_turn>{{ end }}
+    {{ else if eq .Role "tool" }}
+		<start_of_turn>user
+		<tool_response>
+		{{ .Content }}
+		</tool_response>
+		<end_of_turn>
+	{{ end }}
+	{{- if and (ne .Role "assistant") $last }}
+		<start_of_turn>model
+	{{ end }}
+  {{- end }}
 {{- else }}
   {{- if .System }}
-<start_of_turn>user
-{{ .System }}<end_of_turn>
+    <start_of_turn>user
+    {{ .System }}<end_of_turn>
   {{ end }}
   {{ if .Prompt }}
-<start_of_turn>user
-{{ .Prompt }}<end_of_turn>
+    <start_of_turn>user
+    {{ .Prompt }}<end_of_turn>
   {{ end }}
-<start_of_turn>model
-{{ .Response }}{{ if .Response }}<end_of_turn>{{ end }}
+  <start_of_turn>model
+    {{ .Response }}{{ if .Response }}<end_of_turn>{{ end }}
 {{- end }}"""
 
 PARAMETER stop "<end_of_turn>"

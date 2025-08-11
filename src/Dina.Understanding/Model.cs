@@ -3,20 +3,21 @@
 using System.Text;
 
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.VectorData;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.VectorData;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel.Connectors.InMemory;
 using Microsoft.SemanticKernel.Connectors.Ollama;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
-using Microsoft.SemanticKernel.Connectors.InMemory;
+using Microsoft.SemanticKernel.Embeddings;
 using OllamaSharp;
 using LLama.Native;
 using LLamaSharp.SemanticKernel;
 using LLamaSharp.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.Embeddings;
 using LLamaSharp.SemanticKernel.TextEmbedding;
+
 
 public enum ModelRuntime
 {
@@ -55,7 +56,7 @@ public class ModelConversation : Runtime
         {
             var endpoint = new Uri(runtimePath);
 #pragma warning disable SKEXP0001, SKEXP0070 
-            var _client = new OllamaApiClient(endpoint, model);
+            var _client = new OllamaApiClient(endpoint, model);            
             if (!_client.IsRunningAsync().Result)
             {
                 throw new InvalidOperationException($"Ollama API at {runtimePath} is not running. Please start the Ollama server.");

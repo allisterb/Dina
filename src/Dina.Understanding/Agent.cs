@@ -6,6 +6,8 @@ using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.InMemory;
 using Microsoft.SemanticKernel.Functions;
+using OllamaSharp;
+using OllamaSharp.Models;
 
 public class AgentConversation : ModelConversation
 {
@@ -27,7 +29,11 @@ public class AgentConversation : ModelConversation
                 options: new FunctionChoiceBehaviorOptions()
                 {
                     RetainArgumentTypes = true
-                })
+                }),
+                ExtensionData = new Dictionary<string, object>
+                {
+                    { "think", false }
+                },
             }),
             UseImmutableKernel = immutableKernel,
         };
