@@ -8,19 +8,19 @@
 
   <ItemGroup>
     <PackageReference Include="LLamaSharp.semantic-kernel" Version="0.24.0" />
-    <PackageReference Include="Microsoft.Extensions.AI" Version="9.7.1" />
-    <PackageReference Include="Microsoft.Extensions.AI.Abstractions" Version="9.7.1" />
+    <PackageReference Include="Microsoft.Extensions.AI" Version="9.8.0" />
+    <PackageReference Include="Microsoft.Extensions.AI.Abstractions" Version="9.8.0" />
     <PackageReference Include="Microsoft.KernelMemory.AI.Ollama" Version="0.98.250508.3" />
     <PackageReference Include="Microsoft.KernelMemory.AI.OpenAI" Version="0.98.250508.3" />
     <PackageReference Include="Microsoft.KernelMemory.Core" Version="0.98.250508.3" />
     <PackageReference Include="Microsoft.KernelMemory.SemanticKernelPlugin" Version="0.98.250508.3" />
-    <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="1.60.0" />
-    <PackageReference Include="Microsoft.SemanticKernel.Agents.Core" Version="1.60.0" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.InMemory" Version="1.60.0-preview" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Ollama" Version="1.60.0-alpha" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI" Version="1.60.0" />
-    <PackageReference Include="Microsoft.SemanticKernel.Core" Version="1.60.0" />
-    <PackageReference Include="OllamaSharp" Version="5.3.3" />
+    <PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="1.62.0" />
+    <PackageReference Include="Microsoft.SemanticKernel.Agents.Core" Version="1.62.0" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.InMemory" Version="1.62.0-preview" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Ollama" Version="1.62.0-alpha" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI" Version="1.62.0" />
+    <PackageReference Include="Microsoft.SemanticKernel.Core" Version="1.62.0" />
+    <PackageReference Include="OllamaSharp" Version="5.3.4" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="9.0.2" />
   </ItemGroup>
 

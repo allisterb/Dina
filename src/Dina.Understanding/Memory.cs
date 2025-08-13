@@ -1,7 +1,7 @@
 ﻿namespace Dina;
 
 using Microsoft.Extensions.AI;
-
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.VectorData;
@@ -12,9 +12,8 @@ using Microsoft.KernelMemory.AI.Ollama;
 using Microsoft.KernelMemory.AI.OpenAI;
 
 using Microsoft.KernelMemory.SemanticKernelPlugin.Internals;
-using OpenAI;
+
 using static Result;
-using Microsoft.Extensions.Configuration;
 
 public class Memory : Runtime
 {
@@ -29,12 +28,12 @@ public class Memory : Runtime
 
         if (modelRuntime == ModelRuntime.Ollama)
         { 
-        this.ollamaconfig = new OllamaConfig()
-        {
-            Endpoint = endpointUrl,
-            TextModel = new OllamaModelConfig(textmodel, 32 * 1024),
-            EmbeddingModel = new OllamaModelConfig(embeddingmodel, 2048)
-        };
+            var ollamaconfig = new OllamaConfig()
+            {
+                Endpoint = endpointUrl,
+                TextModel = new OllamaModelConfig(textmodel, 32 * 1024),
+                EmbeddingModel = new OllamaModelConfig(embeddingmodel, 2048)
+            };
         
         this.memory =
             builder
@@ -136,6 +135,6 @@ public class Memory : Runtime
     Dictionary<int, string> kbindex = new Dictionary<int, string>();
     readonly ModelRuntime modelRuntime;
     internal IKernelMemory memory;
-    readonly OllamaConfig ollamaconfig;  
+    
     #endregion
 }
