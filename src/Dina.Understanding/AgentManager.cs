@@ -11,14 +11,21 @@ using System.Threading.Tasks;
 
 public class AgentManager : Runtime
 {
-    public AgentManager()
+    public AgentManager(ModelRuntime modelRuntime = ModelRuntime.Ollama,
+        string textModel = OllamaModels.Gemma3n_e4b_tools_test, 
+        string embeddingModel = OllamaModels.Nomic_Embed_Text,
+        string endpointUrl = "http://localhost:11434")
     {
+        this.modelRuntime = modelRuntime;
+        this.textModel = textModel;
+        this.embeddingModel = embeddingModel;
+        this.endpointUrl = endpointUrl;
         config = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("testappsettings.json", optional: false, reloadOnChange: false)
             .Build();
         
-        memory = new Memory(ModelRuntime.Ollama, OllamaModels.Gemma3n_e4b_tools_test, OllamaModels.Nomic_Embed_Text);
+        memory = new Memory(modelRuntime, textModel, embeddingModel, endpointUrl);
         sharedState["Config"] = new();
         email = config["Email:User"] ?? throw new ArgumentNullException("Email:User");
         emailpassword = config["Email:Password"] ?? throw new ArgumentNullException("Email:Password"); ;
@@ -39,7 +46,9 @@ public class AgentManager : Runtime
 
     public AgentConversation StartUserSession()
     {
-        var c = new AgentConversation("The user has just started the Dina program. You must help them get acclimated and answer any questions about Dina they may have.", "Startup Agent", plugins: [
+        var c = new AgentConversation("The user has just started the Dina program. You must help them get acclimated and answer any questions about Dina they may have.", "Startup Agent", 
+            modelRuntime: modelRuntime, model: textModel, embeddingModel: embeddingModel, endpointUrl: endpointUrl,
+            plugins: [
             //(new StatePlugin() {SharedState = sharedState}, "State"),
             (memory.plugin, "Memory"),
             (new MailPlugin(email, emailpassword, emailDisplayName) {SharedState = sharedState}, "Mail"),
@@ -72,7 +81,10 @@ public class AgentManager : Runtime
         "ONLY use function calls to respond to the user's query on files and documents. If you do not know the answer the inform the user.",
         ];
 
+    ModelRuntime modelRuntime;
+    string textModel, embeddingModel, endpointUrl;
     string email, emailpassword, emailDisplayName, me, homedir, kbdir;
+    
     #endregion
 }
 

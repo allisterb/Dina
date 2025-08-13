@@ -17,13 +17,13 @@ using LLama.Native;
 using LLamaSharp.SemanticKernel;
 using LLamaSharp.SemanticKernel.ChatCompletion;
 using LLamaSharp.SemanticKernel.TextEmbedding;
-
+using Microsoft.Extensions.Configuration;
 
 public enum ModelRuntime
 {
     Ollama,
     LlamaCpp,
-    OpenApiCompat
+    OpenAI
 }
 
 public static class OllamaModels
@@ -41,10 +41,10 @@ public static class OllamaModels
 public class ModelConversation : Runtime
 {
     #region Constructors
-    public ModelConversation(ModelRuntime runtimeType = ModelRuntime.Ollama, string model = OllamaModels.Gemma3n_e4b_tools_test, string runtimePath = "http://localhost:11434", string[]? systemPrompts = null)
+    public ModelConversation(ModelRuntime runtimeType = ModelRuntime.Ollama, string model = OllamaModels.Gemma3n_e4b_tools_test, string embeddingModel = OllamaModels.Nomic_Embed_Text, string endpointUrl = "http://localhost:11434", string[]? systemPrompts = null)
     {
         this.runtimeType = runtimeType;
-        this.runtimePath = runtimePath;
+        this.endpointUrl = endpointUrl;
         this.model = model;
         IKernelBuilder builder = Kernel.CreateBuilder();
         builder.Services.AddLogging(builder =>
@@ -54,12 +54,12 @@ public class ModelConversation : Runtime
             );
         if (runtimeType == ModelRuntime.Ollama)
         {
-            var endpoint = new Uri(runtimePath);
+            var endpoint = new Uri(this.endpointUrl);
 #pragma warning disable SKEXP0001, SKEXP0070 
             var _client = new OllamaApiClient(endpoint, model);            
             if (!_client.IsRunningAsync().Result)
             {
-                throw new InvalidOperationException($"Ollama API at {runtimePath} is not running. Please start the Ollama server.");
+                throw new InvalidOperationException($"Ollama API at {this.endpointUrl} is not running. Please start the Ollama server.");
             }
             client = _client;
             chat = _client.AsChatCompletionService(kernel.Services);
@@ -75,14 +75,14 @@ public class ModelConversation : Runtime
                 ExtensionData = new Dictionary<string, object>()
             };
 
-            Info("Using Ollama API at {0} with model {1}", runtimePath, model);
+            Info("Using Ollama API at {0} with model {1}", this.endpointUrl, model);
         }
         else if (runtimeType == ModelRuntime.LlamaCpp)
         {
             NativeLibraryConfig.LLama
                 .WithAutoFallback(true)
                 .WithCuda(true)
-                .WithSearchDirectory(runtimePath)
+                .WithSearchDirectory(this.endpointUrl)
                 .WithLogCallback(logger);
 
             var parameters = new LLama.Common.ModelParams(model)
@@ -101,12 +101,17 @@ public class ModelConversation : Runtime
             chat = new LLamaSharpChatCompletion(ex);
 #pragma warning disable SKEXP0001,SKEXP0010 
             client = chat.AsChatClient();
-            Info("Using llama.cpp embedded library at {0} with model {1}", runtimePath, model);
+            Info("Using llama.cpp embedded library at {0} with model {1}", this.endpointUrl, model);
         }
         else
         {
-            chat = new OpenAIChatCompletionService(model, new Uri(runtimePath), loggerFactory: loggerFactory); 
+            var apiKey = config?["Model:ApiKey"] ?? throw new Exception(); ;
+            var apiKeyCred = new System.ClientModel.ApiKeyCredential(apiKey);
+            var endpoint = new Uri(this.endpointUrl);
+            var oaiOptions = new OpenAI.OpenAIClientOptions() { Endpoint = endpoint };
+            chat = new OpenAIChatCompletionService(model, new Uri(this.endpointUrl), apiKey:apiKey, loggerFactory: loggerFactory);
             client = chat.AsChatClient();
+            builder.AddOpenAIEmbeddingGenerator(embeddingModel, new OpenAI.OpenAIClient(apiKeyCred, oaiOptions));
 #pragma warning restore SKEXP0001, SKEXP0010
             promptExecutionSettings = new OpenAIPromptExecutionSettings()
             {
@@ -116,7 +121,7 @@ public class ModelConversation : Runtime
                 Temperature = 0.1,
                 ExtensionData = new Dictionary<string, object>()
             };
-            Info("Using OpenAI compatible API at {0} with model {1}", runtimePath, model);
+            Info("Using OpenAI compatible API at {0} with model {1}", this.endpointUrl, model);
         }
         
         builder.Services
@@ -195,7 +200,7 @@ public class ModelConversation : Runtime
 
     public readonly ModelRuntime runtimeType;
 
-    public readonly string runtimePath;
+    public readonly string endpointUrl;
 
     public readonly string model;    
 
@@ -210,5 +215,7 @@ public class ModelConversation : Runtime
     public readonly PromptExecutionSettings promptExecutionSettings;
 
     public readonly VectorStore vectorStore;
+
+    public static IConfigurationRoot? config = null;
     #endregion
 }

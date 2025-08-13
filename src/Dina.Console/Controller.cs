@@ -10,6 +10,32 @@ using static Program;
 
 internal class Controller
 {
+    #region Constructor
+    static Controller()
+    {
+        ModelRuntime modelRuntime = ModelRuntime.Ollama;
+        string textModel = OllamaModels.Gemma3n_e4b_tools_test; 
+        string embeddingModel = OllamaModels.Nomic_Embed_Text;
+        string endpointUrl = "http://localhost:11434";  
+        if (config is not null && config["Model:Runtime"] is not null)
+        {
+            modelRuntime = Program.config["Model:Runtime"]?.ToLower() switch
+            {
+                "llamacpp" => ModelRuntime.LlamaCpp,
+                "openai" => ModelRuntime.OpenAI,
+                _ => modelRuntime,
+            };
+            textModel = config["Model:TextModel"] ?? textModel;
+            embeddingModel = config["Model:EmbeddingModel"] ?? embeddingModel;
+            endpointUrl = config["Model:EndpointUrl"] ?? endpointUrl;
+            ModelConversation.config = config;
+            Memory.config = config;
+        }
+        agentManager = new AgentManager(modelRuntime, textModel, embeddingModel, endpointUrl);
+        activeConversation = agentManager.StartUserSession();   
+    }
+    #endregion
+
     #region Methods
     internal static void EnableBeeper()
     {
@@ -291,9 +317,9 @@ internal class Controller
                 {"quit", "$$quit$$" }
             };
 
-    static AgentManager agentManager = new AgentManager();
+    static AgentManager agentManager;
     
-    static AgentConversation activeConversation =  agentManager.StartUserSession();
+    static AgentConversation activeConversation;
     #endregion
 }
 

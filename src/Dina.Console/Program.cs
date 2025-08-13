@@ -1,13 +1,12 @@
 ﻿namespace Dina.Console;
 
+using Microsoft.Extensions.Configuration;
+
 using CommandLine;
 using CommandLine.Text;
-using DocumentFormat.OpenXml.Spreadsheet;
-using Microsoft.Extensions.Configuration;
 using Serilog;
 using Serilog.Extensions.Logging;
 using Spectre.Console;
-using static Org.BouncyCastle.Math.EC.ECCurve;
 
 internal class Program : Runtime
 {
@@ -37,7 +36,7 @@ internal class Program : Runtime
         Initialize("Dina", "CLI", true, lf, lp);
         if (File.Exists("testappsettings.json"))
         {
-            var config = new ConfigurationBuilder()
+            config = new ConfigurationBuilder()
                .SetBasePath(Directory.GetCurrentDirectory())
                .AddJsonFile("testappsettings.json", optional: false, reloadOnChange: false)
                .Build();
@@ -234,6 +233,8 @@ internal class Program : Runtime
     #endregion
 
     #region Fields
+    public readonly static IConfigurationRoot? config;
+
     internal static bool simulateBraille = false;
 
     static Type[] optionTypes = { typeof(Options) };

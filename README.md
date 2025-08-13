@@ -5,7 +5,7 @@ Dina uses Google's Gemma 3n model to extract, understand, and analyze informatio
 ### Requirements 
 * [.NET](https://dotnet.microsoft.com/en-us/) 8.0 or higher
 * [Ollama](https://ollama.com/)
- 
+** 
 Dina requires an Ollama server with the following models:
 * [allisterb/gemma3n_e4b_tools_test](https://ollama.com/allisterb/gemma3n_e4b_tools_test)
 * nomic-embed-text 
@@ -17,7 +17,7 @@ You can pull these models by running the `ollama pull` command for both models e
 * Run `build.cmd` or `./build` in the Dina repository root directory.
 
 ## Running
-Enter `dina --help` or `./dina --help` in the repository root directory to see the list of command-line options. Run the main program with e.g `dina run --braille --mupdf ./bin/mupdf --tesseract ./bin/tesseract`.
+Enter `[./]dina --help` and `dina run --help` in the repository root directory to see the list of command-line options. Run the main program with e.g `dina run --braille --mupdf ./bin/mupdf --tesseract ./bin/tesseract`.
 
 ## Models
 Dina uses the Gemma 3n model for document intelligence tasks and function calling. The model was fine-tuned for function-calling using this [notebook](https://github.com/allisterb/Dina/blob/master/notebooks/finetune_gemma3n_function_calling.ipynb). 

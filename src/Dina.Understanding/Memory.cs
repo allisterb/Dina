@@ -1,38 +1,58 @@
 ﻿namespace Dina;
 
+using Microsoft.Extensions.AI;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.VectorData;
+using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Microsoft.KernelMemory;
 using Microsoft.KernelMemory.AI;
 using Microsoft.KernelMemory.AI.Ollama;
-using Microsoft.KernelMemory.SemanticKernelPlugin.Internals;
+using Microsoft.KernelMemory.AI.OpenAI;
 
+using Microsoft.KernelMemory.SemanticKernelPlugin.Internals;
+using OpenAI;
 using static Result;
+using Microsoft.Extensions.Configuration;
 
 public class Memory : Runtime
 {
-    public Memory(ModelRuntime modelRuntime, string textmodel, string embeddingmodel, string endpoint = "http://localhost:11434")
+    public Memory(ModelRuntime modelRuntime, string textmodel, string embeddingmodel, string endpointUrl = "http://localhost:11434")
     {
         this.modelRuntime = modelRuntime;
-        this.ollamaconfig = new OllamaConfig()
-        {
-            Endpoint = endpoint,
-            TextModel = new OllamaModelConfig(textmodel, 32 * 1024),
-            EmbeddingModel = new OllamaModelConfig(embeddingmodel, 2048)
-        };
-
         var builder = new KernelMemoryBuilder();
-        builder.Services.AddLogging(configure => 
+        builder.Services.AddLogging(configure =>
             configure
             .AddProvider(loggerProvider)
             .SetMinimumLevel(LogLevel.Trace));
+
+        if (modelRuntime == ModelRuntime.Ollama)
+        { 
+        this.ollamaconfig = new OllamaConfig()
+        {
+            Endpoint = endpointUrl,
+            TextModel = new OllamaModelConfig(textmodel, 32 * 1024),
+            EmbeddingModel = new OllamaModelConfig(embeddingmodel, 2048)
+        };
         
         this.memory =
             builder
-            .WithOllamaTextGeneration(ollamaconfig, new CL100KTokenizer())   
-            .WithOllamaTextEmbeddingGeneration(ollamaconfig, new CL100KTokenizer())            
+            .WithOllamaTextGeneration(ollamaconfig, new CL100KTokenizer())
+            .WithOllamaTextEmbeddingGeneration(ollamaconfig, new CL100KTokenizer())
             .Build<MemoryServerless>();
+        }
+        else if (modelRuntime == ModelRuntime.OpenAI)
+        {
+            var apiKey = config?["Model:ApiKey"] ?? throw new InvalidOperationException(); 
+            OpenAIConfig oac = new () { APIKey = apiKey, Endpoint = endpointUrl, TextModel = textmodel, EmbeddingModel = embeddingmodel };
+            this.memory = builder
+                .WithOpenAITextGeneration(oac, new CL100KTokenizer())
+                .WithOpenAITextEmbeddingGeneration(oac, new CL100KTokenizer())
+                .Build<MemoryServerless>();
+        }
+        else throw new NotSupportedException($"Model runtime {modelRuntime} is not supported as yet.");
+
         this.plugin = new MemoryPlugin(this, waitForIngestionToComplete: false, defaultIndex: "kb");
     }
 
@@ -93,6 +113,8 @@ public class Memory : Runtime
 
         return filters;
     }
+
+    public static IConfigurationRoot? config;
     /*
     public async Task<Result<string>> ImportTextAsync(string text, string id, string index)
         => await ExecuteAsync(memory.ImportTextAsync(text, index: index, documentId: id), "Imported document id {0} to index {1}.", val: r => r, args:index);

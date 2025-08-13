@@ -1,6 +1,7 @@
 ﻿namespace Dina;
 
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.ChatCompletion;
@@ -11,10 +12,11 @@ using OllamaSharp.Models;
 
 public class AgentConversation : ModelConversation
 {
-    public AgentConversation(string instructions, string name = "Default Agent", (IPlugin, string)[]? plugins = null, 
-        Dictionary<string, Dictionary<string, object>>? sharedState = null, bool immutableKernel = false, ModelRuntime runtimeType = ModelRuntime.Ollama, string model = OllamaModels.Gemma3n_e4b_tools_test, 
-        string runtimePath = "http://localhost:11434", string[]? systemPrompts = null)
-                : base(runtimeType, model, runtimePath, systemPrompts)
+    public AgentConversation(string instructions, string name = "Default Agent", string[]? systemPrompts = null, (IPlugin, string)[]? plugins = null, 
+        Dictionary<string, Dictionary<string, object>>? sharedState = null, bool immutableKernel = false, 
+        ModelRuntime modelRuntime = ModelRuntime.Ollama, string model = OllamaModels.Gemma3n_e4b_tools_test, string embeddingModel = OllamaModels.Nomic_Embed_Text, string endpointUrl = "http://localhost:11434",
+                ILoggerFactory? loggerFactory = null)
+                : base(modelRuntime, model, embeddingModel, endpointUrl, systemPrompts)
     {
         agent = new ChatCompletionAgent()
         {
