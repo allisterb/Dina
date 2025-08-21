@@ -12,6 +12,8 @@ using Microsoft.SemanticKernel.Connectors.InMemory;
 using Microsoft.SemanticKernel.Connectors.Ollama;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Microsoft.SemanticKernel.Embeddings;
+using ChatCompletion;
+using OpenAI.Chat;
 using OllamaSharp;
 using LLama.Native;
 using LLamaSharp.SemanticKernel;
@@ -46,6 +48,7 @@ public class ModelConversation : Runtime
         this.runtimeType = runtimeType;
         this.endpointUrl = endpointUrl;
         this.model = model;
+        chatHistoryMaxLength = Int32.Parse(config?["Model: ChatHistoryMaxLength"] ?? "5");
         IKernelBuilder builder = Kernel.CreateBuilder();
         builder.Services.AddLogging(builder =>
             builder
@@ -62,7 +65,8 @@ public class ModelConversation : Runtime
                 throw new InvalidOperationException($"Ollama API at {this.endpointUrl} is not running. Please start the Ollama server.");
             }
             client = _client;
-            chat = _client.AsChatCompletionService(kernel.Services);
+            chat = _client.AsChatCompletionService(kernel.Services)
+                .UsingChatHistoryReducer(new ChatHistoryTruncationReducer(chatHistoryMaxLength));
             builder.AddOllamaEmbeddingGenerator(new OllamaApiClient(endpoint, OllamaModels.Nomic_Embed_Text)); 
 #pragma warning restore SKEXP0070, SKEXP0001 
             promptExecutionSettings = new OllamaPromptExecutionSettings()
@@ -98,7 +102,7 @@ public class ModelConversation : Runtime
                 FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: true),
                 ExtensionData = new Dictionary<string, object>()
             };
-            chat = new LLamaSharpChatCompletion(ex);
+            chat = new LLamaSharpChatCompletion(ex).UsingChatHistoryReducer(new ChatHistoryTruncationReducer(chatHistoryMaxLength));
 #pragma warning disable SKEXP0001,SKEXP0010 
             client = chat.AsChatClient();
             Info("Using llama.cpp embedded library at {0} with model {1}", this.endpointUrl, model);
@@ -109,7 +113,8 @@ public class ModelConversation : Runtime
             var apiKeyCred = new System.ClientModel.ApiKeyCredential(apiKey);
             var endpoint = new Uri(this.endpointUrl);
             var oaiOptions = new OpenAI.OpenAIClientOptions() { Endpoint = endpoint };
-            chat = new OpenAIChatCompletionService(model, new Uri(this.endpointUrl), apiKey:apiKey, loggerFactory: loggerFactory);
+            chat = new OpenAIChatCompletionService(model, new Uri(this.endpointUrl), apiKey:apiKey, loggerFactory: loggerFactory)
+                .UsingChatHistoryReducer(new ChatHistoryTruncationReducer(chatHistoryMaxLength));
             client = chat.AsChatClient();
             builder.AddOpenAIEmbeddingGenerator(embeddingModel, new OpenAI.OpenAIClient(apiKeyCred, oaiOptions));
 #pragma warning restore SKEXP0001, SKEXP0010
@@ -119,6 +124,7 @@ public class ModelConversation : Runtime
                 FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: true),
                 TopP = 0.95f,
                 Temperature = 0.1,
+                MaxTokens = 2048,
                 ExtensionData = new Dictionary<string, object>()
             };
             Info("Using OpenAI compatible API at {0} with model {1}", this.endpointUrl, model);
@@ -215,6 +221,8 @@ public class ModelConversation : Runtime
     public readonly PromptExecutionSettings promptExecutionSettings;
 
     public readonly VectorStore vectorStore;
+
+    public int chatHistoryMaxLength;
 
     public static IConfigurationRoot? config = null;
     #endregion

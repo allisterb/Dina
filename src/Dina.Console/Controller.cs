@@ -28,8 +28,7 @@ internal class Controller
             textModel = config["Model:TextModel"] ?? textModel;
             embeddingModel = config["Model:EmbeddingModel"] ?? embeddingModel;
             endpointUrl = config["Model:EndpointUrl"] ?? endpointUrl;
-            ModelConversation.config = config;
-            Memory.config = config;
+
         }
         agentManager = new AgentManager(modelRuntime, textModel, embeddingModel, endpointUrl);
         activeConversation = agentManager.StartUserSession();   

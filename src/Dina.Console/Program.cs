@@ -44,6 +44,9 @@ internal class Program : Runtime
             Documents.tesseractPath = config["Programs:Tesseract"] ?? Documents.tesseractPath;
             Documents.homeDir = config["Files:HomeDir"] ?? Documents.homeDir;
             Documents.kbDir = config["Files:KBDir"] ?? Documents.kbDir;
+            Documents.config = config;
+            ModelConversation.config = config;
+            Memory.config = config;
         }
     }
 

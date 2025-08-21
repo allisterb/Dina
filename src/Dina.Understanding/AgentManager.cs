@@ -53,7 +53,7 @@ public class AgentManager : Runtime
             (memory.plugin, "Memory"),
             (new MailPlugin(email, emailpassword, emailDisplayName) {SharedState = sharedState}, "Mail"),
             (new DocumentsPlugin(){SharedState = sharedState}, "Documents"),
-            //(new ContactsPlugin() {SharedState = sharedState}, "Contacts"),
+            (new ContactsPlugin() {SharedState = sharedState}, "Contacts"),
         ],
         systemPrompts: systemPrompts)
         {

@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 
 using NAPS2.Images;
 using NAPS2.Images.ImageSharp;
@@ -240,6 +241,8 @@ public class Documents : Runtime
     public static string homeDir = Path.Combine(Directory.GetCurrentDirectory(), "data", "home");
 
     public static string kbDir = Path.Combine(Directory.GetCurrentDirectory(), "data", "kb");
+
+    public static IConfigurationRoot? config;
     #endregion
 }
 
