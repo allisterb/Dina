@@ -17,7 +17,8 @@ public class DocumentTests
         var lf = new SerilogLoggerFactory(logger);
         var lp = new SerilogLoggerProvider(logger, false);
         Runtime.Initialize("Dina.Core.Understanding", "Tests", false, lf, lp);
-        Documents.BinPath = "C:\\Projects\\Dina\\bin";
+        Documents.muPdfPath = "C:\\Projects\\Dina\\bin\\mupdf";
+        Documents.tesseractPath = "C:\\Projects\\Dina\\bin\\tesseract";
     }
 
     [Fact]

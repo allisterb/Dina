@@ -18,7 +18,7 @@ namespace Dina.Tests.Understanding
             var lf = new SerilogLoggerFactory(logger);
             var lp = new SerilogLoggerProvider(logger, false);
             Runtime.Initialize("Dina.Understanding", "Tests", false, lf, lp);
-            Documents.BinPath = "C:\\Projects\\Dina\\bin";
+            Documents.muPdfPath = "C:\\Projects\\Dina\\bin\\mupdf";
             config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("testappsettings.json", optional: false, reloadOnChange: true)
