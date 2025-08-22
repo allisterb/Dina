@@ -234,9 +234,11 @@ public class Documents : Runtime
     #endregion
 
     #region Fields
-    public static string muPdfPath = Path.Combine(CurentDirectory, "bin", "mupdf");
+    public static string muPdfPath = Environment.OSVersion.Platform == PlatformID.Win32NT ? 
+        Path.Combine(CurentDirectory, "bin", "mupdf") : "/usr/bin";
 
-    public static string tesseractPath = Path.Combine(CurentDirectory, "bin", "tesseract");
+    public static string tesseractPath = Environment.OSVersion.Platform == PlatformID.Win32NT ? 
+        Path.Combine(CurentDirectory, "bin", "tesseract") : "/usr/bin";
 
     public static string homeDir = Path.Combine(Directory.GetCurrentDirectory(), "data", "home");
 
