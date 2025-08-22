@@ -26,9 +26,9 @@ public class AgentManager : Runtime
         emailAddress = config["Email:User"] ?? throw new ArgumentNullException("Email:User");
         emailPassword = config["Email:Password"] ?? throw new ArgumentNullException("Email:Password"); ;
         emailDisplayName = config["Email:DisplayName"] ?? throw new ArgumentNullException("Email:DisplayName");
-        me = config["Email:ManagerEmail"] ?? throw new ArgumentNullException("Email:DisplayName");
-        homedir = config["Files:HomeDir"] ?? throw new ArgumentNullException("Files:HomeDir");
-        kbdir = config["Files:KBDir"] ?? throw new ArgumentNullException("Files:KBDir");
+        me = config["Email:ManagerEmail"] ?? throw new ArgumentNullException("Email:ManagerEmail");
+        homedir = config["Files:HomeDir"] ?? Path.Combine(CurentDirectory, "data", "home");
+        kbdir = config?["Files:KBDir"] ?? Path.Combine(CurentDirectory, "data", "kb");
         sharedState["Config"]["ManagerEmail"] = me;
         sharedState["Config"]["HomeDir"] = homedir;
 

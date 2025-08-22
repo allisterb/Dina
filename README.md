@@ -13,6 +13,8 @@ Dina requires an Ollama server with the following models:
 * nomic-embed-text 
 
 You can pull these models by running the `ollama pull` command for both models e.g. `ollama pull allisterb/gemma3n_e4b_tools_test && ollama pull nomic-embed-text` from your command line.
+
+On Linux you can install MuPDF and Tesseract using your system package manager e.g. on Ubuntu: `sudo apt install mupdf-tools` and `sudo apt install tesseract`. On Windows you can install using the official archives and installers, or you can download the required program binaries [here](https://ajb.nyc3.cdn.digitaloceanspaces.com/Dina-programs.zip). Set the location of the 2 programs in the Dina configuration file described in the section below.
 ## Building
 
 * Clone the Dina repo from GitHub: `git clone https://github.com/allisterb/Dina.git --recurse-submodules`
@@ -61,6 +63,4 @@ Enter `[./]dina --help` and `dina run --help` in the repository root directory t
 
 
 ## Models
-Dina uses the Gemma 3n model for document intelligence tasks and function calling. The model was fine-tuned for function-calling using this [notebook](https://github.com/allisterb/Dina/blob/master/notebooks/finetune_gemma3n_function_calling.ipynb). 
-
-The model used for fine-tuning is [gemma-3n-E4B-it-unsloth-bnb-4bit](https://huggingface.co/unsloth/gemma-3n-E4B-it-unsloth-bnb-4bit). Ollama doesn't support image inputs for Gemma 3n models as yet so Dina uses Tesseract to convert scanned document images to text before passing the text to the Gemma 3n model for analyzing.
+Dina uses the Gemma 3n model for document intelligence tasks and function calling. The model was fine-tuned for function-calling using this [notebook](https://github.com/allisterb/Dina/blob/master/notebooks/finetune_gemma3n_function_calling.ipynb). The model used for fine-tuning is [gemma-3n-E4B-it-unsloth-bnb-4bit](https://huggingface.co/unsloth/gemma-3n-E4B-it-unsloth-bnb-4bit). Ollama doesn't support image inputs for Gemma 3n models as yet so Dina uses Tesseract to convert scanned document images to text before passing the text to the Gemma 3n model for analyzing.
