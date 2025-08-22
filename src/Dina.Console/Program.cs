@@ -29,7 +29,6 @@ internal class Program : Runtime
            .Enrich.FromLogContext()
            .MinimumLevel.Verbose()
            .WriteTo.File(Path.Combine(Runtime.AssemblyLocation, "Dina.CLI.log"))
-           
            .CreateLogger();
         var lf = new SerilogLoggerFactory(logger);
         var lp = new SerilogLoggerProvider(logger, false);
@@ -47,6 +46,7 @@ internal class Program : Runtime
             Documents.config = config;
             ModelConversation.config = config;
             Memory.config = config;
+            simulateBraille = bool.Parse(config?["Console:SimulateBraille"] ?? "False");
         }
     }
 
@@ -119,11 +119,11 @@ internal class Program : Runtime
     static void Help(ParserResult<object> result, IEnumerable<Error> errors)
     {
         HelpText help = GetAutoBuiltHelpText(result);
-        help.Heading = new HeadingInfo("Lokad.Onnx command-line help");
+        help.Heading = new HeadingInfo("Dina command-line help");
         help.Copyright = "";
         if (errors.Any(e => e.Tag == ErrorType.VersionRequestedError))
         {
-            help.Heading = new HeadingInfo("Lokad.Onnx", AssemblyVersion.ToString(3));
+            help.Heading = new HeadingInfo("Dina", AssemblyVersion.ToString(3));
             help.Copyright = "";
             InfoLine(help);
             Exit(ExitResult.SUCCESS);

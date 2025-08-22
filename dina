@@ -1,4 +1,3 @@
 #! /bin/bash
-pushd src/Dina.Console/bin/Debug/net8.0
-./Dina.Console
-popd
+src/Dina.Console/bin/Debug/net8.0/Dina.Console $*
+

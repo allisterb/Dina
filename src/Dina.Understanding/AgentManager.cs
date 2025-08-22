@@ -1,13 +1,9 @@
 ﻿namespace Dina;
 
-using DocumentFormat.OpenXml.Spreadsheet;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Microsoft.KernelMemory;
-using Microsoft.SemanticKernel;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Threading.Tasks;
+
+using Microsoft.Extensions.Configuration;
 
 public class AgentManager : Runtime
 {
@@ -27,14 +23,18 @@ public class AgentManager : Runtime
         
         memory = new Memory(modelRuntime, textModel, embeddingModel, endpointUrl);
         sharedState["Config"] = new();
-        email = config["Email:User"] ?? throw new ArgumentNullException("Email:User");
-        emailpassword = config["Email:Password"] ?? throw new ArgumentNullException("Email:Password"); ;
+        emailAddress = config["Email:User"] ?? throw new ArgumentNullException("Email:User");
+        emailPassword = config["Email:Password"] ?? throw new ArgumentNullException("Email:Password"); ;
         emailDisplayName = config["Email:DisplayName"] ?? throw new ArgumentNullException("Email:DisplayName");
         me = config["Email:ManagerEmail"] ?? throw new ArgumentNullException("Email:DisplayName");
         homedir = config["Files:HomeDir"] ?? throw new ArgumentNullException("Files:HomeDir");
         kbdir = config["Files:KBDir"] ?? throw new ArgumentNullException("Files:KBDir");
         sharedState["Config"]["ManagerEmail"] = me;
         sharedState["Config"]["HomeDir"] = homedir;
+
+        documents = new DocumentsPlugin() { SharedState = sharedState};
+        contacts = new ContactsPlugin() { SharedState = sharedState };
+        mail = new MailPlugin(emailAddress, emailPassword, emailDisplayName) { SharedState = sharedState };
     }
 
     public async Task CreateKBAsync()
@@ -49,11 +49,10 @@ public class AgentManager : Runtime
         var c = new AgentConversation("The user has just started the Dina program. You must help them get acclimated and answer any questions about Dina they may have.", "Startup Agent", 
             modelRuntime: modelRuntime, model: textModel, embeddingModel: embeddingModel, endpointUrl: endpointUrl,
             plugins: [
-            //(new StatePlugin() {SharedState = sharedState}, "State"),
             (memory.plugin, "Memory"),
-            (new MailPlugin(email, emailpassword, emailDisplayName) {SharedState = sharedState}, "Mail"),
-            (new DocumentsPlugin(){SharedState = sharedState}, "Documents"),
-            (new ContactsPlugin() {SharedState = sharedState}, "Contacts"),
+            (mail, "Mail"),
+            (documents, "Documents"),
+            (contacts, "Contacts"),
         ],
         systemPrompts: systemPrompts)
         {
@@ -74,17 +73,20 @@ public class AgentManager : Runtime
 
     IConfigurationRoot config;
 
-    string[] systemPrompts = [
+    static readonly string[] systemPrompts = [
         "You are working for Dina, a document intelligence agent that assists blind users with getting information from printed and electronic documents and using this information to interface with different business systems and processes. " +
         "Your users are employees who are vision-impaired so keep your answers as short and precise as possible." + 
         "Your main role is to work on business documents at a console. Only one file at a time will be active in the console." +
-        "ONLY use function calls to respond to the user's query on files and documents. If you do not know the answer the inform the user.",
+        "ONLY use function calls to respond to the user's query on files and documents. If you do not know the answer then inform the user.",
         ];
 
     ModelRuntime modelRuntime;
     string textModel, embeddingModel, endpointUrl;
-    string email, emailpassword, emailDisplayName, me, homedir, kbdir;
-    
+    string emailAddress, emailPassword, emailDisplayName, me, homedir, kbdir;
+    MailPlugin mail;
+    DocumentsPlugin documents;
+    ContactsPlugin contacts;
+
     #endregion
 }
 
