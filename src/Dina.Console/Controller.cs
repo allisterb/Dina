@@ -177,14 +177,14 @@ internal class Controller
     internal static void SayInfoLine(string template, params object[] args)
     {
         if (template.Length == 0 || (template.Length == 1 && template[0] == '*')) return;
-        var text = Markup.Escape(args.Length == 0 ? template : string.Format(template, args));
+        var text = Markup.Escape(args.Length == 0 ? template : string.Format(template.Replace("{", "").Replace("}", ""), args));
         AnsiConsole.MarkupLine($"[lightgoldenrod2_1]{text}[/]");
         if (simulateBraille) AnsiConsole.MarkupLine($"[yellow]{TextToBraille(text)}[/]");
     }
 
     internal static void SayErrorLine(string template, params object[] args)
     {
-        var text = Markup.Escape(args.Length == 0 ? template : string.Format(template, args));
+        var text = Markup.Escape(args.Length == 0 ? template : string.Format(template.Replace("{", "").Replace("}", ""), args));
         AnsiConsole.MarkupLine($"[red]{text}[/]");
         if (simulateBraille) AnsiConsole.MarkupLine($"[red]{TextToBraille(text)}[/]");
     }

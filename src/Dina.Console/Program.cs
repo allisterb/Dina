@@ -196,14 +196,14 @@ internal class Program : Runtime
     static void InfoLine(string template, params object[] args)
     {
         Info(template, args);
-        var text = Markup.Escape(args.Length == 0 ? template : string.Format(template, args));
+        var text = Markup.Escape(args.Length == 0 ? template : string.Format(template.Replace("{", "").Replace("}", ""), args));
         AnsiConsole.MarkupLine($"[lightgoldenrod2_1]{text}[/]");
     }
 
     static void ErrorLine(string template, params object[] args)
     {
         Error(template, args);  
-        var text = Markup.Escape(args.Length == 0 ? template : string.Format(template, args));
+        var text = Markup.Escape(args.Length == 0 ? template : string.Format(template.Replace("{", "").Replace("}", ""), args));
         AnsiConsole.MarkupLine($"[red]{text}[/]");
     }
 
