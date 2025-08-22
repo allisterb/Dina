@@ -33,7 +33,7 @@
   </ItemGroup>
 
   <Target Name="CopyDefs" AfterTargets="Build">
-    <Copy SourceFiles="testappsettings.json" DestinationFolder="..\.." />
+    <Copy SourceFiles="testappsettings.json" Condition="Exists('testappsettings.json')" DestinationFolder="..\.." />
   </Target>
   
 </Project>
